@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="ALE.ACS.Presentation.Shell.MenuBarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Menu>
+
+        <MenuItem Header="_File"/>
+        <MenuItem Header="_Edit"/>
+        <MenuItem Header="_View"/>
+        <MenuItem Header="_Project"/>
+        <MenuItem Header="_Control"/>
+        <MenuItem Header="_Simulation"/>
+        <MenuItem Header="_Tools"/>
+        <MenuItem Header="_Window"/>
+        <MenuItem Header="_Help"/>
+
+    </Menu>
+
+</UserControl>

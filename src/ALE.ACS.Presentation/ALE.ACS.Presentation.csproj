@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<ItemGroup>
+	  <Compile Remove="Controls\**" />
+	  <Compile Remove="NovaPasta\**" />
+	  <EmbeddedResource Remove="Controls\**" />
+	  <EmbeddedResource Remove="NovaPasta\**" />
+	  <None Remove="Controls\**" />
+	  <None Remove="NovaPasta\**" />
+	  <Page Remove="Controls\**" />
+	  <Page Remove="NovaPasta\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ALE.ACS.Application\ALE.ACS.Application.csproj" />
+		<ProjectReference Include="..\ALE.ACS.Shared\ALE.ACS.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Shell\Controls\" />
+	  <Folder Include="Shell\Panes\" />
+	  <Folder Include="Shell\Themes\" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+	</PropertyGroup>
+
+</Project>

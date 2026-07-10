@@ -1,0 +1,17 @@
+﻿<Project>
+
+	<PropertyGroup>
+
+		<!-- Linguagem -->
+		<LangVersion>preview</LangVersion>
+
+		<!-- Recursos modernos do C# -->
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- Qualidade -->
+		<AnalysisLevel>latest</AnalysisLevel>
+
+	</PropertyGroup>
+
+</Project>

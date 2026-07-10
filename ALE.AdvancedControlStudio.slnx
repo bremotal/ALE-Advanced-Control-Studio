@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Itens de Solução/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ALE.ACS.Application/ALE.ACS.Application.csproj" />
+    <Project Path="src/ALE.ACS.Domain/ALE.ACS.Domain.csproj" />
+    <Project Path="src/ALE.ACS.Engine/ALE.ACS.Engine.csproj" />
+    <Project Path="src/ALE.ACS.Export/ALE.ACS.Export.csproj" />
+    <Project Path="src/ALE.ACS.Infrastructure/ALE.ACS.Infrastructure.csproj" />
+    <Project Path="src/ALE.ACS.Presentation/ALE.ACS.Presentation.csproj" />
+    <Project Path="src/ALE.ACS.Shared/ALE.ACS.Shared.csproj" />
+  </Folder>
+</Solution>
