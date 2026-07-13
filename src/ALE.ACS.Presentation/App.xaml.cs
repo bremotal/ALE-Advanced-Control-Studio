@@ -1,4 +1,5 @@
-﻿using ALE.ACS.Presentation.DependencyInjection;
+﻿using ALE.ACS.Application.DependencyInjection;
+using ALE.ACS.Presentation.DependencyInjection;
 using ALE.ACS.Presentation.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +19,10 @@ public partial class App : System.Windows.Application
             .CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
+                // Application
+                services.AddApplication();
+
+                // Presentation
                 services.AddPresentation();
             })
             .Build();

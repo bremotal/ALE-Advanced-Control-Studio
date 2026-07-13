@@ -19,6 +19,7 @@
         </Grid.RowDefinitions>
 
         <!-- Cabeçalho -->
+
         <TextBlock
             Grid.Row="0"
             Text="Criar Novo Projeto"
@@ -26,6 +27,7 @@
             FontWeight="SemiBold"/>
 
         <!-- Conteúdo -->
+
         <StackPanel Grid.Row="2">
 
             <TextBlock
@@ -33,13 +35,15 @@
                 Text="Nome do Projeto"/>
 
             <TextBox
-                x:Name="ProjectNameTextBox"
                 Height="32"
-                VerticalContentAlignment="Center"/>
+                VerticalContentAlignment="Center"
+                Text="{Binding ProjectName,
+                               UpdateSourceTrigger=PropertyChanged}"/>
 
         </StackPanel>
 
         <!-- Rodapé -->
+
         <StackPanel
             Grid.Row="4"
             Orientation="Horizontal"
@@ -54,8 +58,8 @@
             <Button
                 Width="100"
                 IsDefault="True"
-                Content="Criar"/>
-
+                Content="Criar"
+                Command="{Binding CreateCommand}" />
         </StackPanel>
 
     </Grid>

@@ -1,25 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using ALE.ACS.Presentation.Events;
+using ALE.ACS.Presentation.ViewModels.Projects;
 
-namespace ALE.ACS.Presentation.Shell.Dialogs.Projects
+namespace ALE.ACS.Presentation.Shell.Dialogs.Projects;
+
+/// <summary>
+/// Diálogo para criação de um novo projeto.
+/// </summary>
+public partial class NewProjectDialog : Window
 {
-    /// <summary>
-    /// Lógica interna para NewProjectDialog.xaml
-    /// </summary>
-    public partial class NewProjectDialog : Window
+    public NewProjectViewModel ViewModel { get; }
+
+    public NewProjectDialog(NewProjectViewModel viewModel)
     {
-        public NewProjectDialog()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+
+        ViewModel = viewModel;
+
+        DataContext = ViewModel;
+
+        ViewModel.RequestClose += OnRequestClose;
+    }
+
+    private void OnRequestClose(
+        object? sender,
+        DialogCloseRequestedEventArgs e)
+    {
+        DialogResult = e.DialogResult;
     }
 }

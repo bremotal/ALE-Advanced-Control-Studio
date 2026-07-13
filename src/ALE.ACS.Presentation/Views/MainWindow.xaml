@@ -18,7 +18,8 @@
 
             <MenuItem Header="_Arquivo">
 
-                <MenuItem Header="_Novo Projeto..." />
+                <MenuItem Header="_Novo Projeto..."
+                          Command="{Binding NewProjectCommand}" />
 
                 <MenuItem Header="_Abrir Projeto..." />
 
