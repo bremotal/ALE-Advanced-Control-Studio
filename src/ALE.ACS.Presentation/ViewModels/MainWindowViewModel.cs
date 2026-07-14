@@ -15,8 +15,18 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly IProjectService _projectService;
 
+    private const string DefaultWindowTitle = "ALE Advanced Control Studio";
+
     [ObservableProperty]
     private Project? currentProject;
+
+    /// <summary>
+    /// Título exibido na janela principal.
+    /// </summary>
+    public string WindowTitle =>
+        CurrentProject is null
+            ? DefaultWindowTitle
+            : $"{DefaultWindowTitle} - {CurrentProject.Name}";
 
     public MainWindowViewModel(
         IDialogService dialogService,
@@ -24,6 +34,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _dialogService = dialogService;
         _projectService = projectService;
+    }
+
+    partial void OnCurrentProjectChanged(Project? value)
+    {
+        OnPropertyChanged(nameof(WindowTitle));
     }
 
     [RelayCommand]

@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:ALE.ACS.Presentation.Views"
         mc:Ignorable="d"
-        Title="ALE Advanced Control Studio"
+        Title="{Binding WindowTitle}"
         Height="800"
         Width="1400"
         MinHeight="700"
@@ -39,12 +40,10 @@
 
         </Menu>
 
-        <!-- TOOLBAR (Reservada para futuras funcionalidades) -->
+        <!-- TOOLBAR -->
         <ToolBarTray DockPanel.Dock="Top">
 
-            <ToolBar>
-
-            </ToolBar>
+            <ToolBar/>
 
         </ToolBarTray>
 
@@ -72,56 +71,16 @@
 
             </Grid.ColumnDefinitions>
 
-            <!-- Explorer -->
-            <Border Grid.Column="0"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="0,0,1,0"
-                    Background="#F8F8F8">
-
-                <StackPanel Margin="10">
-
-                    <TextBlock Text="Solution Explorer"
-                               FontWeight="Bold"
-                               FontSize="14"/>
-
-                    <Separator Margin="0,8"/>
-
-                    <TextBlock Text="Nenhum projeto aberto"
-                               Foreground="Gray"/>
-
-                </StackPanel>
-
-            </Border>
+            <!-- Solution Explorer -->
+            <views:SolutionExplorerView Grid.Column="0"/>
 
             <!-- Separador -->
-
             <GridSplitter Grid.Column="1"
                           Width="5"
                           HorizontalAlignment="Stretch"/>
 
             <!-- Workspace -->
-
-            <Grid Grid.Column="2">
-
-                <StackPanel HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-
-                    <TextBlock
-                        Text="ALE Advanced Control Studio"
-                        FontSize="28"
-                        FontWeight="SemiBold"
-                        HorizontalAlignment="Center"/>
-
-                    <TextBlock
-                        Margin="0,15,0,0"
-                        Text="Plataforma para Engenharia de Controle Avançado"
-                        FontSize="15"
-                        Foreground="Gray"
-                        HorizontalAlignment="Center"/>
-
-                </StackPanel>
-
-            </Grid>
+            <views:WorkspaceView Grid.Column="2"/>
 
         </Grid>
 

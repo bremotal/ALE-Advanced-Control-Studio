@@ -1,6 +1,8 @@
 ﻿using ALE.ACS.Application.Interfaces;
 using ALE.ACS.Application.Projects;
 using ALE.ACS.Presentation.Services.Dialogs;
+using ALE.ACS.Presentation.Services.Projects;
+using ALE.ACS.Presentation.Services.Session;
 using ALE.ACS.Presentation.Shell.Dialogs.Projects;
 using ALE.ACS.Presentation.ViewModels;
 using ALE.ACS.Presentation.ViewModels.Projects;
@@ -18,12 +20,15 @@ public static class PresentationServiceCollectionExtensions
     {
         // Serviços da Presentation
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<IProjectSession, ProjectSession>();
+        services.AddSingleton<FakeProjectService>();
 
         // Serviços da Application
         services.AddSingleton<IProjectService, ProjectService>();
 
         // ViewModels
         services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<ProjectExplorerViewModel>();
         services.AddTransient<NewProjectViewModel>();
 
         // Views
