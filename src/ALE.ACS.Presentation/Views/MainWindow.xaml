@@ -3,84 +3,143 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="clr-namespace:ALE.ACS.Presentation.Views"
+        xmlns:panes="clr-namespace:ALE.ACS.Presentation.Shell.Panes"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
-        Height="800"
-        Width="1400"
+        Height="900"
+        Width="1600"
         MinHeight="700"
-        MinWidth="1100"
+        MinWidth="1200"
         WindowStartupLocation="CenterScreen">
 
-    <DockPanel LastChildFill="True">
+    <DockPanel>
 
-        <!-- MENU PRINCIPAL -->
+        <!-- MENU -->
         <Menu DockPanel.Dock="Top">
 
             <MenuItem Header="_Arquivo">
-
                 <MenuItem Header="_Novo Projeto..."
                           Command="{Binding NewProjectCommand}" />
-
                 <MenuItem Header="_Abrir Projeto..." />
-
                 <Separator/>
-
                 <MenuItem Header="_Sair"/>
-
             </MenuItem>
 
             <MenuItem Header="_Projeto"/>
-
-            <MenuItem Header="_Exibir"/>
-
+            <MenuItem Header="_Controladores"/>
             <MenuItem Header="_Ferramentas"/>
-
+            <MenuItem Header="_Exibir"/>
             <MenuItem Header="_Ajuda"/>
 
         </Menu>
 
         <!-- TOOLBAR -->
         <ToolBarTray DockPanel.Dock="Top">
-
             <ToolBar/>
-
         </ToolBarTray>
 
-        <!-- STATUS BAR -->
+        <!-- STATUS -->
         <StatusBar DockPanel.Dock="Bottom">
-
             <StatusBarItem>
-
-                <TextBlock Text="Pronto"/>
-
+                <TextBlock Text="Ready"/>
             </StatusBarItem>
-
         </StatusBar>
 
-        <!-- ÁREA PRINCIPAL -->
+        <!-- SHELL -->
         <Grid>
 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="180"/>
+            </Grid.RowDefinitions>
+
             <Grid.ColumnDefinitions>
-
-                <ColumnDefinition Width="260"/>
-
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="5"/>
-
                 <ColumnDefinition Width="*"/>
-
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="320"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Solution Explorer -->
-            <views:SolutionExplorerView Grid.Column="0"/>
+            <!-- Project Explorer -->
+            <Border Grid.Row="0"
+                    Grid.Column="0"
+                    BorderBrush="#C0C0C0"
+                    BorderThickness="1">
 
-            <!-- Separador -->
-            <GridSplitter Grid.Column="1"
+                <panes:ProjectExplorerPane/>
+
+            </Border>
+
+            <!-- Splitter Esquerdo -->
+            <GridSplitter Grid.Row="0"
+                          Grid.Column="1"
                           Width="5"
                           HorizontalAlignment="Stretch"/>
 
             <!-- Workspace -->
-            <views:WorkspaceView Grid.Column="2"/>
+            <Border Grid.Row="0"
+                    Grid.Column="2"
+                    BorderBrush="#C0C0C0"
+                    BorderThickness="1">
+
+                <Grid>
+
+                    <TextBlock Text="Workspace"
+                               FontSize="18"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+
+                </Grid>
+
+            </Border>
+
+            <!-- Splitter Direito -->
+            <GridSplitter Grid.Row="0"
+                          Grid.Column="3"
+                          Width="5"
+                          HorizontalAlignment="Stretch"/>
+
+            <!-- Properties -->
+            <Border Grid.Row="0"
+                    Grid.Column="4"
+                    BorderBrush="#C0C0C0"
+                    BorderThickness="1">
+
+                <Grid>
+
+                    <TextBlock Text="Properties"
+                               FontSize="18"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+
+                </Grid>
+
+            </Border>
+
+            <!-- Splitter Inferior -->
+            <GridSplitter Grid.Row="1"
+                          Grid.ColumnSpan="5"
+                          Height="5"
+                          VerticalAlignment="Stretch"/>
+
+            <!-- Output -->
+            <Border Grid.Row="2"
+                    Grid.ColumnSpan="5"
+                    BorderBrush="#C0C0C0"
+                    BorderThickness="1">
+
+                <Grid>
+
+                    <TextBlock Text="Output"
+                               FontSize="18"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+
+                </Grid>
+
+            </Border>
 
         </Grid>
 

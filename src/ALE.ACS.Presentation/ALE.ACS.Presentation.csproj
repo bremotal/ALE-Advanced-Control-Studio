@@ -24,7 +24,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Shell\Controls\" />
-	  <Folder Include="Shell\Panes\" />
 	  <Folder Include="Shell\Themes\" />
 	</ItemGroup>
 
