@@ -1,4 +1,12 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="Architecture.md" />
+    <File Path="Changelog.md" />
+    <File Path="CodingStandards.md" />
+    <File Path="images.md" />
+    <File Path="MathematicalModels.md" />
+    <File Path="Roadmap.md" />
+  </Folder>
   <Folder Name="/Itens de Solução/">
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
