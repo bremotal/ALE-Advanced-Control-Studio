@@ -12,4 +12,7 @@
     <Project Path="src/ALE.ACS.Presentation/ALE.ACS.Presentation.csproj" />
     <Project Path="src/ALE.ACS.Shared/ALE.ACS.Shared.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ALE.ACS.Engine.Tests/ALE.ACS.Engine.Tests.csproj" />
+  </Folder>
 </Solution>
