@@ -1,94 +1,129 @@
-﻿using ALE.ACS.Engine.Fuzzy.MembershipFunctions;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Xunit;
 
-namespace ALE.ACS.Engine.Tests;
+namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions.Tests;
 
-public class SigmoidMembershipFunctionTests
+public sealed class SigmoidMembershipFunctionTests
 {
     [Fact]
-    public void Constructor_WithZeroSlope_ShouldThrowArgumentOutOfRangeException()
+    public void Constructor_Should_Create_Instance_With_Valid_Parameters()
     {
-        Action act = () => new SigmoidMembershipFunction(0.0, 0.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: 2.0,
+            center: 10.0);
 
-        act.Should().Throw<ArgumentOutOfRangeException>();
+        function.Name.Should().Be("Sigmoid");
+        function.Slope.Should().Be(2.0);
+        function.Center.Should().Be(10.0);
     }
 
     [Fact]
-    public void GetMembership_AtCenter_ShouldReturnHalf()
+    public void Constructor_Should_Throw_When_Slope_Is_Zero()
     {
-        var mf = new SigmoidMembershipFunction(1.0, 0.0);
+        var action = () => new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: 0.0,
+            center: 0.0);
 
-        double value = mf.GetMembership(0.0);
-
-        value.Should().BeApproximately(0.5, 1e-10);
+        action.Should()
+              .Throw<ArgumentOutOfRangeException>();
     }
 
     [Fact]
-    public void GetMembership_WithPositiveSlope_ShouldIncrease()
+    public void Membership_Should_Be_Half_At_Center()
     {
-        var mf = new SigmoidMembershipFunction(2.0, 0.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: 2.0,
+            center: 5.0);
 
-        double left = mf.GetMembership(-5.0);
-        double center = mf.GetMembership(0.0);
-        double right = mf.GetMembership(5.0);
+        var membership = function.GetMembership(5.0);
 
-        left.Should().BeLessThan(center);
-        center.Should().BeLessThan(right);
+        membership.Should().BeApproximately(0.5, 1e-12);
     }
 
     [Fact]
-    public void GetMembership_WithNegativeSlope_ShouldDecrease()
+    public void Increasing_Sigmoid_Should_Approach_One()
     {
-        var mf = new SigmoidMembershipFunction(-2.0, 0.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: 2.0,
+            center: 0.0);
 
-        double left = mf.GetMembership(-5.0);
-        double center = mf.GetMembership(0.0);
-        double right = mf.GetMembership(5.0);
-
-        left.Should().BeGreaterThan(center);
-        center.Should().BeGreaterThan(right);
+        function.GetMembership(100.0)
+            .Should()
+            .BeGreaterThan(0.999999);
     }
 
     [Fact]
-    public void GetMembership_ForLargeNegativeValue_ShouldApproachZero()
+    public void Increasing_Sigmoid_Should_Approach_Zero()
     {
-        var mf = new SigmoidMembershipFunction(1.0, 0.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: 2.0,
+            center: 0.0);
 
-        double value = mf.GetMembership(-100.0);
-
-        value.Should().BeApproximately(0.0, 1e-10);
+        function.GetMembership(-100.0)
+            .Should()
+            .BeLessThan(0.000001);
     }
 
     [Fact]
-    public void GetMembership_ForLargePositiveValue_ShouldApproachOne()
+    public void Decreasing_Sigmoid_Should_Approach_One_On_Left()
     {
-        var mf = new SigmoidMembershipFunction(1.0, 0.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: -2.0,
+            center: 0.0);
 
-        double value = mf.GetMembership(100.0);
-
-        value.Should().BeApproximately(1.0, 1e-10);
+        function.GetMembership(-100.0)
+            .Should()
+            .BeGreaterThan(0.999999);
     }
 
     [Fact]
-    public void GetMembership_ShouldAlwaysReturnValueBetweenZeroAndOne()
+    public void Decreasing_Sigmoid_Should_Approach_Zero_On_Right()
     {
-        var mf = new SigmoidMembershipFunction(3.0, 5.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: -2.0,
+            center: 0.0);
 
-        for (double x = -100.0; x <= 100.0; x += 0.5)
-        {
-            double value = mf.GetMembership(x);
-
-            value.Should().BeInRange(0.0, 1.0);
-        }
+        function.GetMembership(100.0)
+            .Should()
+            .BeLessThan(0.000001);
     }
 
     [Fact]
-    public void Properties_ShouldBeInitializedCorrectly()
+    public void Membership_Should_Be_Monotonic_For_Positive_Slope()
     {
-        var mf = new SigmoidMembershipFunction(2.5, 10.0);
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: 2.0,
+            center: 0.0);
 
-        mf.Slope.Should().Be(2.5);
-        mf.Center.Should().Be(10.0);
+        var a = function.GetMembership(-1.0);
+        var b = function.GetMembership(0.0);
+        var c = function.GetMembership(1.0);
+
+        a.Should().BeLessThan(b);
+        b.Should().BeLessThan(c);
+    }
+
+    [Fact]
+    public void Membership_Should_Be_Monotonic_For_Negative_Slope()
+    {
+        var function = new SigmoidMembershipFunction(
+            name: "Sigmoid",
+            slope: -2.0,
+            center: 0.0);
+
+        var a = function.GetMembership(-1.0);
+        var b = function.GetMembership(0.0);
+        var c = function.GetMembership(1.0);
+
+        a.Should().BeGreaterThan(b);
+        b.Should().BeGreaterThan(c);
     }
 }

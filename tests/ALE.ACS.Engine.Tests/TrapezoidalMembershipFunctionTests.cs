@@ -1,76 +1,125 @@
 ﻿using ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 
-namespace ALE.ACS.Engine.Tests;
+namespace ALE.ACS.Engine.Tests.Fuzzy.MembershipFunctions;
 
 public class TrapezoidalMembershipFunctionTests
 {
-    [Fact]
-    public void DeveRetornarZeroNoLimiteInferior()
+    private static TrapezoidalMembershipFunction CreateDefault()
     {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
-
-        Assert.Equal(0.0, mf.GetMembership(0));
+        return new("High", 0.0, 25.0, 75.0, 100.0);
     }
 
-    [Fact]
-    public void DeveRetornarUmNoInicioDoPlato()
-    {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
+    #region Construction
 
-        Assert.Equal(1.0, mf.GetMembership(25));
+    [Fact]
+    public void Should_Create_Valid_Trapezoidal_Membership_Function()
+    {
+        var mf = CreateDefault();
+
+        Assert.NotNull(mf);
     }
 
-    [Fact]
-    public void DeveRetornarUmNoFinalDoPlato()
-    {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
-
-        Assert.Equal(1.0, mf.GetMembership(75));
-    }
-
-    [Fact]
-    public void DeveRetornarZeroNoLimiteSuperior()
-    {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
-
-        Assert.Equal(0.0, mf.GetMembership(100));
-    }
-
-    [Fact]
-    public void DeveRetornarZeroForaDaFaixa()
-    {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
-
-        Assert.Equal(0.0, mf.GetMembership(-10));
-        Assert.Equal(0.0, mf.GetMembership(110));
-    }
-
-    [Fact]
-    public void DeveRetornarMeioNaSubida()
-    {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
-
-        Assert.Equal(0.5, mf.GetMembership(12.5), 6);
-    }
-
-    [Fact]
-    public void DeveRetornarMeioNaDescida()
-    {
-        var mf = new TrapezoidalMembershipFunction("Alta", 0, 25, 75, 100);
-
-        Assert.Equal(0.5, mf.GetMembership(87.5), 6);
-    }
-
-    [Fact]
-    public void DeveLancarExcecaoQuandoParametrosForemInvalidos()
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void Should_Throw_When_Name_Is_Invalid(string name)
     {
         Assert.Throws<ArgumentException>(() =>
-            new TrapezoidalMembershipFunction("Erro", 10, 5, 20, 30));
-
-        Assert.Throws<ArgumentException>(() =>
-            new TrapezoidalMembershipFunction("Erro", 0, 20, 10, 30));
-
-        Assert.Throws<ArgumentException>(() =>
-            new TrapezoidalMembershipFunction("Erro", 0, 20, 30, 25));
+            new TrapezoidalMembershipFunction(
+                name,
+                0,
+                25,
+                75,
+                100));
     }
+
+    [Fact]
+    public void Should_Throw_When_Name_Is_Null()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new TrapezoidalMembershipFunction(
+                null!,
+                0,
+                25,
+                75,
+                100));
+    }
+
+    [Theory]
+    [InlineData(10, 5, 20, 30)]
+    [InlineData(0, 20, 10, 30)]
+    [InlineData(0, 20, 30, 25)]
+    public void Should_Throw_When_Parameters_Are_Invalid(
+        double left,
+        double leftShoulder,
+        double rightShoulder,
+        double right)
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new TrapezoidalMembershipFunction(
+                "High",
+                left,
+                leftShoulder,
+                rightShoulder,
+                right));
+    }
+
+    #endregion
+
+    #region Properties
+
+    [Fact]
+    public void Should_Expose_Name()
+    {
+        var mf = CreateDefault();
+
+        Assert.Equal("High", mf.Name);
+    }
+
+    #endregion
+
+    #region Evaluation
+
+    [Theory]
+    [InlineData(-10.0, 0.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(12.5, 0.5)]
+    [InlineData(25.0, 1.0)]
+    [InlineData(50.0, 1.0)]
+    [InlineData(75.0, 1.0)]
+    [InlineData(87.5, 0.5)]
+    [InlineData(100.0, 0.0)]
+    [InlineData(110.0, 0.0)]
+    public void Should_Return_Expected_Membership(
+        double input,
+        double expected)
+    {
+        var mf = CreateDefault();
+
+        Assert.Equal(
+            expected,
+            mf.GetMembership(input),
+            6);
+    }
+
+    #endregion
+
+    #region Boundary Conditions
+
+    [Theory]
+    [InlineData(double.MinValue)]
+    [InlineData(double.MaxValue)]
+    public void Should_Return_Zero_For_Extreme_Values(
+        double input)
+    {
+        var mf = CreateDefault();
+
+        Assert.Equal(
+            0.0,
+            mf.GetMembership(input),
+            6);
+    }
+
+    #endregion
 }

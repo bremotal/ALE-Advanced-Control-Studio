@@ -1,55 +1,99 @@
 ﻿using ALE.ACS.Engine.Fuzzy.MembershipFunctions;
+using Xunit;
 
-namespace ALE.ACS.Engine.Tests;
+namespace ALE.ACS.Engine.Tests.Fuzzy.MembershipFunctions;
 
-public class TriangularMembershipFunctionTests
+public sealed class TriangularMembershipFunctionTests
 {
-    [Fact]
-    public void DeveRetornarZeroNoLimiteInferior()
+    private static TriangularMembershipFunction CreateDefault()
     {
-        var mf = new TriangularMembershipFunction("Alta", 0, 50, 100);
+        return new TriangularMembershipFunction(
+            "Triangle",
+            0.0,
+            5.0,
+            10.0);
+    }
 
-        Assert.Equal(0.0, mf.GetMembership(0));
+    #region Construction
+
+    [Fact]
+    public void Constructor_Should_Create_Instance()
+    {
+        var function = CreateDefault();
+
+        Assert.NotNull(function);
+        Assert.Equal("Triangle", function.Name);
     }
 
     [Fact]
-    public void DeveRetornarUmNoPico()
+    public void Should_Throw_When_Name_Is_Null()
     {
-        var mf = new TriangularMembershipFunction("Alta", 0, 50, 100);
+        Assert.Throws<ArgumentNullException>(() =>
+            new TriangularMembershipFunction(
+                null!,
+                0.0,
+                5.0,
+                10.0));
+    }
 
-        Assert.Equal(1.0, mf.GetMembership(50));
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void Should_Throw_When_Name_Is_WhiteSpace(string name)
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new TriangularMembershipFunction(
+                name,
+                0.0,
+                5.0,
+                10.0));
     }
 
     [Fact]
-    public void DeveRetornarZeroNoLimiteSuperior()
+    public void Should_Throw_When_Left_Is_Greater_Than_Center()
     {
-        var mf = new TriangularMembershipFunction("Alta", 0, 50, 100);
-
-        Assert.Equal(0.0, mf.GetMembership(100));
+        Assert.Throws<ArgumentException>(() =>
+            new TriangularMembershipFunction(
+                "Triangle",
+                5.0,
+                5.0,
+                10.0));
     }
 
     [Fact]
-    public void DeveRetornarZeroForaDaFaixa()
+    public void Should_Throw_When_Center_Is_Greater_Than_Right()
     {
-        var mf = new TriangularMembershipFunction("Alta", 0, 50, 100);
-
-        Assert.Equal(0.0, mf.GetMembership(-10));
-        Assert.Equal(0.0, mf.GetMembership(150));
+        Assert.Throws<ArgumentException>(() =>
+            new TriangularMembershipFunction(
+                "Triangle",
+                0.0,
+                10.0,
+                10.0));
     }
 
-    [Fact]
-    public void DeveRetornarMeioNaSubida()
-    {
-        var mf = new TriangularMembershipFunction("Alta", 0, 50, 100);
+    #endregion
 
-        Assert.Equal(0.5, mf.GetMembership(25), 6);
+    #region Evaluation
+
+    [Theory]
+    [InlineData(-1.0, 0.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(2.5, 0.5)]
+    [InlineData(5.0, 1.0)]
+    [InlineData(7.5, 0.5)]
+    [InlineData(10.0, 0.0)]
+    [InlineData(11.0, 0.0)]
+    public void GetMembership_Should_Return_Expected_Value(
+        double input,
+        double expected)
+    {
+        var function = CreateDefault();
+
+        var result = function.GetMembership(input);
+
+        Assert.Equal(expected, result, 6);
     }
 
-    [Fact]
-    public void DeveRetornarMeioNaDescida()
-    {
-        var mf = new TriangularMembershipFunction("Alta", 0, 50, 100);
-
-        Assert.Equal(0.5, mf.GetMembership(75), 6);
-    }
+    #endregion
 }
