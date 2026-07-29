@@ -1,41 +1,64 @@
-﻿namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
+﻿using ALE.ACS.Engine.Fuzzy.Types;
+
+namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 
 /// <summary>
-/// Função de pertinência triangular.
+/// Represents a triangular membership function.
 /// </summary>
-public sealed class TriangularMembershipFunction : MembershipFunctionBase
+public sealed class TriangularMembershipFunction
+    : PointBasedMembershipFunctionBase
 {
-    public double A { get; }
-    public double B { get; }
-    public double C { get; }
-
+    /// <summary>
+    /// Initializes a new instance of the
+    /// <see cref="TriangularMembershipFunction"/> class.
+    /// </summary>
+    /// <param name="name">
+    /// Membership function name.
+    /// </param>
+    /// <param name="left">
+    /// Left point.
+    /// </param>
+    /// <param name="center">
+    /// Peak point.
+    /// </param>
+    /// <param name="right">
+    /// Right point.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the parameters do not define a valid triangular
+    /// membership function.
+    /// </exception>
     public TriangularMembershipFunction(
         string name,
-        double a,
-        double b,
-        double c)
-        : base(name)
+        double left,
+        double center,
+        double right)
+        : base(
+            name,
+            [
+                new MembershipPoint(left, 0.0),
+                new MembershipPoint(center, 1.0),
+                new MembershipPoint(right, 0.0)
+            ])
     {
-        if (!(a < b && b < c))
+        if (left >= center)
+        {
             throw new ArgumentException(
-                "Os parâmetros devem obedecer à relação A < B < C.");
+                "The left point must be less than the center point.",
+                nameof(left));
+        }
 
-        A = a;
-        B = b;
-        C = c;
+        if (center >= right)
+        {
+            throw new ArgumentException(
+                "The center point must be less than the right point.",
+                nameof(center));
+        }
     }
 
+    /// <inheritdoc />
     public override double GetMembership(double x)
     {
-        if (x <= A || x >= C)
-            return 0.0;
-
-        if (x == B)
-            return 1.0;
-
-        if (x < B)
-            return Clamp01((x - A) / (B - A));
-
-        return Clamp01((C - x) / (C - B));
+        return Interpolate(x);
     }
 }

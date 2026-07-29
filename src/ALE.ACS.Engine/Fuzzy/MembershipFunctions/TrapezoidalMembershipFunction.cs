@@ -1,44 +1,76 @@
-﻿namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
+﻿using ALE.ACS.Engine.Fuzzy.Types;
+
+namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 
 /// <summary>
-/// Função de pertinência trapezoidal.
+/// Represents a trapezoidal membership function.
 /// </summary>
-public sealed class TrapezoidalMembershipFunction : MembershipFunctionBase
+public sealed class TrapezoidalMembershipFunction
+    : PointBasedMembershipFunctionBase
 {
-    public double A { get; }
-    public double B { get; }
-    public double C { get; }
-    public double D { get; }
-
+    /// <summary>
+    /// Initializes a new instance of the
+    /// <see cref="TrapezoidalMembershipFunction"/> class.
+    /// </summary>
+    /// <param name="name">
+    /// Membership function name.
+    /// </param>
+    /// <param name="left">
+    /// Left foot.
+    /// </param>
+    /// <param name="leftShoulder">
+    /// Left shoulder.
+    /// </param>
+    /// <param name="rightShoulder">
+    /// Right shoulder.
+    /// </param>
+    /// <param name="right">
+    /// Right foot.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the parameters do not define a valid trapezoidal
+    /// membership function.
+    /// </exception>
     public TrapezoidalMembershipFunction(
         string name,
-        double a,
-        double b,
-        double c,
-        double d)
-        : base(name)
+        double left,
+        double leftShoulder,
+        double rightShoulder,
+        double right)
+        : base(
+            name,
+            [
+                new MembershipPoint(left, 0.0),
+                new MembershipPoint(leftShoulder, 1.0),
+                new MembershipPoint(rightShoulder, 1.0),
+                new MembershipPoint(right, 0.0)
+            ])
     {
-        if (!(a < b && b <= c && c < d))
+        if (left >= leftShoulder)
+        {
             throw new ArgumentException(
-                "Os parâmetros devem obedecer à relação A < B <= C < D.");
+                "The left point must be less than the left shoulder.",
+                nameof(left));
+        }
 
-        A = a;
-        B = b;
-        C = c;
-        D = d;
+        if (leftShoulder > rightShoulder)
+        {
+            throw new ArgumentException(
+                "The left shoulder must be less than or equal to the right shoulder.",
+                nameof(leftShoulder));
+        }
+
+        if (rightShoulder >= right)
+        {
+            throw new ArgumentException(
+                "The right shoulder must be less than the right point.",
+                nameof(rightShoulder));
+        }
     }
 
+    /// <inheritdoc />
     public override double GetMembership(double x)
     {
-        if (x <= A || x >= D)
-            return 0.0;
-
-        if (x >= B && x <= C)
-            return 1.0;
-
-        if (x < B)
-            return Clamp01((x - A) / (B - A));
-
-        return Clamp01((D - x) / (D - C));
+        return Interpolate(x);
     }
 }
