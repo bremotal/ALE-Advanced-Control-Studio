@@ -7,8 +7,22 @@ namespace ALE.ACS.Infrastructure.DependencyInjection;
 /// </summary>
 public static class InfrastructureServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    /// <summary>
+    /// Registra todos os serviços da infraestrutura.
+    /// </summary>
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services)
     {
+        // File System
+
+        // Persistence
+
+        // Serialization
+
+        // Logging
+
+        // Configuration
+
         return services;
     }
 }
