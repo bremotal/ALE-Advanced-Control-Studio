@@ -7,15 +7,27 @@ namespace ALE.ACS.Presentation.Services.Session;
 /// </summary>
 public sealed class ProjectSession : IProjectSession
 {
-    public Project? CurrentProject { get; private set; }
+    private Project? _currentProject;
+
+    public Project? CurrentProject => _currentProject;
+
+    public event EventHandler<Project?>? CurrentProjectChanged;
 
     public void SetCurrentProject(Project project)
     {
-        CurrentProject = project;
+        if (_currentProject == project)
+            return;
+
+        _currentProject = project;
+        CurrentProjectChanged?.Invoke(this, _currentProject);
     }
 
     public void CloseProject()
     {
-        CurrentProject = null;
+        if (_currentProject is null)
+            return;
+
+        _currentProject = null;
+        CurrentProjectChanged?.Invoke(this, null);
     }
 }

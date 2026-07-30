@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using ALE.ACS.Application.Interfaces;
 using ALE.ACS.Domain.Projects;
 using ALE.ACS.Presentation.Services.Dialogs;
+using ALE.ACS.Presentation.Services.Session;
 using ALE.ACS.Presentation.Shell.Dialogs.Projects;
 
 namespace ALE.ACS.Presentation.ViewModels;
@@ -14,6 +15,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IDialogService _dialogService;
     private readonly IProjectService _projectService;
+    private readonly IProjectSession _projectSession;
 
     private const string DefaultWindowTitle = "ALE Advanced Control Studio";
 
@@ -30,15 +32,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(
         IDialogService dialogService,
-        IProjectService projectService)
+        IProjectService projectService,
+        IProjectSession projectSession)
     {
         _dialogService = dialogService;
         _projectService = projectService;
+        _projectSession = projectSession;
     }
 
     partial void OnCurrentProjectChanged(Project? value)
     {
         OnPropertyChanged(nameof(WindowTitle));
+
+        if (value is null)
+        {
+            _projectSession.CloseProject();
+            return;
+        }
+
+        _projectSession.SetCurrentProject(value);
     }
 
     [RelayCommand]

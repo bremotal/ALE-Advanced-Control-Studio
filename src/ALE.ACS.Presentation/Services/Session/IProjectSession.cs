@@ -13,6 +13,11 @@ public interface IProjectSession
     Project? CurrentProject { get; }
 
     /// <summary>
+    /// Ocorre quando o projeto ativo muda.
+    /// </summary>
+    event EventHandler<Project?>? CurrentProjectChanged;
+
+    /// <summary>
     /// Define o projeto ativo.
     /// </summary>
     void SetCurrentProject(Project project);
