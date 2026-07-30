@@ -41,7 +41,7 @@
         <!-- STATUS -->
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
-                <TextBlock Text="Ready"/>
+                <TextBlock Text="{Binding StatusText}"/>
             </StatusBarItem>
         </StatusBar>
 
@@ -84,12 +84,16 @@
                     BorderBrush="#C0C0C0"
                     BorderThickness="1">
 
-                <Grid>
+                <Grid Margin="16">
 
-                    <TextBlock Text="Workspace"
-                               FontSize="18"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Workspace"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding WorkspaceContent}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
 
                 </Grid>
 
@@ -107,12 +111,16 @@
                     BorderBrush="#C0C0C0"
                     BorderThickness="1">
 
-                <Grid>
+                <Grid Margin="16">
 
-                    <TextBlock Text="Properties"
-                               FontSize="18"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Properties"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding PropertiesContent}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
 
                 </Grid>
 

@@ -30,6 +30,30 @@ public partial class MainWindowViewModel : ViewModelBase
             ? DefaultWindowTitle
             : $"{DefaultWindowTitle} - {CurrentProject.Name}";
 
+    /// <summary>
+    /// Texto exibido na barra de status da IDE.
+    /// </summary>
+    public string StatusText =>
+        CurrentProject is null
+            ? "Ready"
+            : $"Project: {CurrentProject.Name}";
+
+    /// <summary>
+    /// Conteúdo exibido na área de trabalho da IDE.
+    /// </summary>
+    public string WorkspaceContent =>
+        CurrentProject is null
+            ? "Create or open a project to begin designing control solutions."
+            : $"Project: {CurrentProject.Name}\nStatus: {(CurrentProject.IsDirty ? "Modified" : "Saved")}";
+
+    /// <summary>
+    /// Conteúdo exibido no painel de propriedades.
+    /// </summary>
+    public string PropertiesContent =>
+        CurrentProject is null
+            ? "No project selected."
+            : $"Name: {CurrentProject.Name}\nFile: {CurrentProject.FileName ?? "Not saved"}\nDirty: {(CurrentProject.IsDirty ? "Yes" : "No")}";
+
     public MainWindowViewModel(
         IDialogService dialogService,
         IProjectService projectService,
@@ -43,6 +67,9 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnCurrentProjectChanged(Project? value)
     {
         OnPropertyChanged(nameof(WindowTitle));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(WorkspaceContent));
+        OnPropertyChanged(nameof(PropertiesContent));
 
         if (value is null)
         {
