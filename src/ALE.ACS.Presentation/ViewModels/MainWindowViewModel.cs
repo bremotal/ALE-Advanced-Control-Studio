@@ -5,6 +5,7 @@ using ALE.ACS.Domain.Projects;
 using ALE.ACS.Presentation.Services.Dialogs;
 using ALE.ACS.Presentation.Services.Session;
 using ALE.ACS.Presentation.Shell.Dialogs.Projects;
+using ALE.ACS.Presentation.Views;
 
 namespace ALE.ACS.Presentation.ViewModels;
 
@@ -21,6 +22,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private Project? currentProject;
+
+    public WorkspaceView WorkspaceView { get; }
 
     /// <summary>
     /// Título exibido na janela principal.
@@ -57,11 +60,17 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         IDialogService dialogService,
         IProjectService projectService,
-        IProjectSession projectSession)
+        IProjectSession projectSession,
+        WorkspaceViewModel workspaceViewModel)
     {
         _dialogService = dialogService;
         _projectService = projectService;
         _projectSession = projectSession;
+
+        WorkspaceView = new WorkspaceView
+        {
+            DataContext = workspaceViewModel
+        };
     }
 
     partial void OnCurrentProjectChanged(Project? value)

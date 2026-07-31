@@ -14,5 +14,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ALE.ACS.Engine.Tests/ALE.ACS.Engine.Tests.csproj" />
+    <Project Path="tests/ALE.ACS.Presentation.Tests/ALE.ACS.Presentation.Tests.csproj" />
   </Folder>
 </Solution>

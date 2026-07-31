@@ -5,29 +5,88 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
 
-    <Grid Background="White">
+    <Grid Background="#F7F7F7">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <StackPanel HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
+        <Border BorderBrush="#D0D0D0"
+                BorderThickness="0,0,0,1"
+                Background="White">
+            <DockPanel Margin="12">
+                <TextBlock Text="{Binding WorkspaceTitle}"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           DockPanel.Dock="Left"/>
 
-            <TextBlock Text="ALE Advanced Control Studio"
-                       FontSize="28"
-                       FontWeight="SemiBold"
-                       HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            DockPanel.Dock="Right">
+                    <Button Content="Open Sample"
+                            Command="{Binding OpenSampleDocumentCommand}"/>
+                    <Button Content="Close"
+                            Command="{Binding CloseActiveDocumentCommand}"
+                            Margin="8,0,0,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-            <TextBlock Margin="0,15,0,0"
-                       Text="Workspace"
-                       FontSize="18"
-                       FontWeight="SemiBold"
-                       HorizontalAlignment="Center"/>
+        <Grid Grid.Row="1" Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <TextBlock Margin="0,8,0,0"
-                       Text="Nenhum documento aberto."
-                       Foreground="Gray"
-                       HorizontalAlignment="Center"/>
+            <Border Grid.Column="0"
+                    BorderBrush="#D0D0D0"
+                    BorderThickness="1"
+                    Background="White">
+                <DockPanel Margin="12">
+                    <TextBlock Text="Documents"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"
+                               DockPanel.Dock="Top"/>
 
-        </StackPanel>
+                    <ListBox ItemsSource="{Binding Documents}"
+                             SelectedItem="{Binding ActiveDocument, Mode=TwoWay}"
+                             DisplayMemberPath="Title"/>
+                </DockPanel>
+            </Border>
 
+            <GridSplitter Grid.Column="1"
+                          Width="8"
+                          HorizontalAlignment="Stretch"/>
+
+            <Border Grid.Column="2"
+                    BorderBrush="#D0D0D0"
+                    BorderThickness="1"
+                    Background="White">
+                <StackPanel Margin="12">
+                    <TextBlock Text="{Binding ActiveDocument.Title, FallbackValue='No document selected'}"
+                               FontSize="16"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Margin="0,8,0,0"
+                               Text="{Binding ActiveDocument.Kind, StringFormat='Type: {0}', FallbackValue='Type: -'}"
+                               Foreground="#505050"/>
+
+                    <TextBlock Margin="0,4,0,0"
+                               Text="{Binding ActiveDocument.LastModified, StringFormat='Modified: {0:g}', FallbackValue='Modified: -'}"
+                               Foreground="#505050"/>
+
+                    <Separator Margin="0,12,0,12"/>
+
+                    <TextBox Text="{Binding ActiveDocument.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             MinHeight="220"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 
 </UserControl>
