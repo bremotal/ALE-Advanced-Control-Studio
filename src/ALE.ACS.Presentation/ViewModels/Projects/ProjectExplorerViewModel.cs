@@ -4,10 +4,11 @@ using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Services.Explorer;
 using ALE.ACS.Presentation.Services.Navigation;
 using ALE.ACS.Presentation.Services.Session;
+using CommunityToolkit.Mvvm.Input;
 
 namespace ALE.ACS.Presentation.ViewModels.Projects;
 
-public class ProjectExplorerViewModel : ViewModelBase
+public partial class ProjectExplorerViewModel : ViewModelBase
 {
     private readonly IProjectExplorerService _projectExplorerService;
     private readonly INavigationService _navigationService;
@@ -68,5 +69,55 @@ public class ProjectExplorerViewModel : ViewModelBase
         }
 
         SelectedNode = rootNode;
+    }
+
+    [RelayCommand]
+    private void OpenSelectedNode()
+    {
+        if (SelectedNode is null)
+            return;
+
+        _navigationService.SelectNode(SelectedNode);
+    }
+
+    [RelayCommand]
+    private void RenameSelectedNode()
+    {
+        if (SelectedNode is null)
+            return;
+
+        SelectedNode.Name = $"{SelectedNode.Name} (Renamed)";
+        _navigationService.SelectNode(SelectedNode);
+        OnPropertyChanged(nameof(ProjectItems));
+    }
+
+    [RelayCommand]
+    private void ExpandSelectedNode()
+    {
+        if (SelectedNode is null)
+            return;
+
+        SetExpanded(SelectedNode, true);
+        OnPropertyChanged(nameof(ProjectItems));
+    }
+
+    [RelayCommand]
+    private void CollapseSelectedNode()
+    {
+        if (SelectedNode is null)
+            return;
+
+        SetExpanded(SelectedNode, false);
+        OnPropertyChanged(nameof(ProjectItems));
+    }
+
+    private static void SetExpanded(TreeNode node, bool isExpanded)
+    {
+        node.IsExpanded = isExpanded;
+
+        foreach (var child in node.Children)
+        {
+            SetExpanded(child, isExpanded);
+        }
     }
 }

@@ -5,6 +5,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+
     <Grid Background="#F7F7F7">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -35,8 +39,7 @@
 
         <Grid Grid.Row="1" Margin="12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260"/>
-                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -44,23 +47,66 @@
                     BorderBrush="#D0D0D0"
                     BorderThickness="1"
                     Background="White">
-                <DockPanel Margin="12">
-                    <TextBlock Text="Documents"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,8"
-                               DockPanel.Dock="Top"/>
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                    <ListBox ItemsSource="{Binding Documents}"
-                             SelectedItem="{Binding ActiveDocument, Mode=TwoWay}"
-                             DisplayMemberPath="Title"/>
-                </DockPanel>
+                    <TextBlock Text="Workspace Tabs"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
+
+                    <TabControl Grid.Row="1"
+                                ItemsSource="{Binding Documents}"
+                                SelectedItem="{Binding ActiveDocument, Mode=TwoWay}">
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Title}"/>
+                                    <TextBlock Text=" *"
+                                               Foreground="#B3261E"
+                                               Visibility="{Binding IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                    <Button Content="x"
+                                            Margin="8,0,0,0"
+                                            Padding="4,0"
+                                            Command="{Binding DataContext.CloseDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+
+                        <TabControl.ContentTemplate>
+                            <DataTemplate>
+                                <Grid Margin="8">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="{Binding Kind, StringFormat='Type: {0}'}"
+                                               Foreground="#505050"/>
+
+                                    <TextBlock Grid.Row="1"
+                                               Margin="0,4,0,8"
+                                               Text="{Binding LastModified, StringFormat='Modified: {0:g}'}"
+                                               Foreground="#505050"/>
+
+                                    <TextBox Grid.Row="2"
+                                             Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"
+                                             HorizontalScrollBarVisibility="Auto"/>
+                                </Grid>
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
+                </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1"
-                          Width="8"
-                          HorizontalAlignment="Stretch"/>
-
-            <Border Grid.Column="2"
+            <Border Grid.Column="1"
                     BorderBrush="#D0D0D0"
                     BorderThickness="1"
                     Background="White">

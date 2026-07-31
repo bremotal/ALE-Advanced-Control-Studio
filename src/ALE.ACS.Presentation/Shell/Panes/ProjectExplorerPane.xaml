@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="ALE.ACS.Presentation.Shell.Panes.ProjectExplorerPane"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:behaviors="clr-namespace:ALE.ACS.Presentation.Behaviors"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -13,9 +14,29 @@
         Background="White">
 
         <TreeView ItemsSource="{Binding ProjectItems}"
+                    behaviors:TreeViewSelectionBehavior.SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
           BorderThickness="0"
           Background="Transparent"
           Foreground="Black">
+
+            <TreeView.InputBindings>
+                <MouseBinding Gesture="LeftDoubleClick"
+                              Command="{Binding OpenSelectedNodeCommand}" />
+            </TreeView.InputBindings>
+
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Open"
+                              Command="{Binding OpenSelectedNodeCommand}" />
+                    <MenuItem Header="Rename"
+                              Command="{Binding RenameSelectedNodeCommand}" />
+                    <Separator/>
+                    <MenuItem Header="Expand"
+                              Command="{Binding ExpandSelectedNodeCommand}" />
+                    <MenuItem Header="Collapse"
+                              Command="{Binding CollapseSelectedNodeCommand}" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">

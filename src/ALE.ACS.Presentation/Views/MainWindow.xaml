@@ -20,9 +20,28 @@
             <MenuItem Header="_Arquivo">
                 <MenuItem Header="_Novo Projeto..."
                           Command="{Binding NewProjectCommand}" />
-                <MenuItem Header="_Abrir Projeto..." />
+                <MenuItem Header="_Abrir Projeto..."
+                          Command="{Binding OpenProjectCommand}"/>
+                <MenuItem Header="_Salvar"
+                          Command="{Binding SaveProjectCommand}"/>
+                <MenuItem Header="Salvar _Como"
+                          Command="{Binding SaveProjectAsCommand}"/>
+                <MenuItem Header="_Fechar"
+                          Command="{Binding CloseProjectCommand}"/>
                 <Separator/>
-                <MenuItem Header="_Sair"/>
+                <MenuItem Header="_Recentes"
+                          ItemsSource="{Binding RecentProjects}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}"/>
+                            <Setter Property="Command" Value="{Binding DataContext.OpenRecentProjectCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="_Sair"
+                          Command="{Binding ExitApplicationCommand}"/>
             </MenuItem>
 
             <MenuItem Header="_Projeto"/>
@@ -35,13 +54,35 @@
 
         <!-- TOOLBAR -->
         <ToolBarTray DockPanel.Dock="Top">
-            <ToolBar/>
+            <ToolBar>
+            <Button Content="Novo"
+                Command="{Binding NewProjectCommand}"/>
+            <Button Content="Abrir"
+                Command="{Binding OpenProjectCommand}"/>
+            <Button Content="Salvar"
+                Command="{Binding SaveProjectCommand}"/>
+            <Button Content="Fechar"
+                Command="{Binding CloseProjectCommand}"/>
+            <Separator/>
+            <Button Content="Undo"
+                Command="{Binding UndoCommand}"/>
+            <Button Content="Redo"
+                Command="{Binding RedoCommand}"/>
+            </ToolBar>
         </ToolBarTray>
 
         <!-- STATUS -->
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusText}"/>
+                <TextBlock Text="{Binding ProjectStatus, StringFormat='Project: {0}'}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding DocumentStatus, StringFormat='Document: {0}'}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding StateStatus, StringFormat='State: {0}'}"/>
             </StatusBarItem>
         </StatusBar>
 
@@ -102,12 +143,39 @@
 
                 <Grid Margin="16">
 
-                    <StackPanel VerticalAlignment="Center">
+                    <StackPanel>
                         <TextBlock Text="Properties"
                                    FontSize="18"
                                    FontWeight="SemiBold"
                                    Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding PropertiesContent}"
+                        <TextBlock Text="{Binding StatusText}"
+                                   Margin="0,0,0,12"
+                                   Foreground="#505050"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock Text="Name"/>
+                        <TextBox Margin="0,4,0,8"
+                                 Text="{Binding SelectedName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Text="Type"/>
+                        <TextBox Margin="0,4,0,8"
+                                 Text="{Binding SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Text="Description"/>
+                        <TextBox Margin="0,4,0,8"
+                                 Height="120"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Text="{Binding SelectedDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <Button Content="Apply"
+                                HorizontalAlignment="Left"
+                                Padding="12,4"
+                                Command="{Binding ApplyPropertiesCommand}"/>
+
+                        <TextBlock Margin="0,12,0,0"
+                                   Text="{Binding PropertiesContent}"
                                    TextWrapping="Wrap"/>
                     </StackPanel>
 
@@ -127,13 +195,33 @@
                     BorderBrush="#C0C0C0"
                     BorderThickness="1">
 
-                <Grid>
+                <Grid Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
                     <TextBlock Text="Output"
-                               FontSize="18"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
 
+                    <ListView Grid.Row="1"
+                              ItemsSource="{Binding OutputEntries}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Width="140"
+                                                Header="Time"
+                                                DisplayMemberBinding="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}"/>
+                                <GridViewColumn Width="100"
+                                                Header="Level"
+                                                DisplayMemberBinding="{Binding Level}"/>
+                                <GridViewColumn Width="900"
+                                                Header="Message"
+                                                DisplayMemberBinding="{Binding Message}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
                 </Grid>
 
             </Border>
