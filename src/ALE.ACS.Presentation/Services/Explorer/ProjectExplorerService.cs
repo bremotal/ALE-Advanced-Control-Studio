@@ -1,11 +1,10 @@
-﻿using System.Collections.ObjectModel;
 using ALE.ACS.Presentation.Models;
 
-namespace ALE.ACS.Presentation.Services.Projects;
+namespace ALE.ACS.Presentation.Services.Explorer;
 
-public class FakeProjectService
+public sealed class ProjectExplorerService : IProjectExplorerService
 {
-    public ObservableCollection<TreeNode> LoadProject()
+    public IReadOnlyList<TreeNode> LoadProjectTree()
     {
         return
         [

@@ -1,27 +1,47 @@
 ﻿using System.Collections.ObjectModel;
 using ALE.ACS.Domain.Projects;
 using ALE.ACS.Presentation.Models;
-using ALE.ACS.Presentation.Services.Projects;
+using ALE.ACS.Presentation.Services.Explorer;
+using ALE.ACS.Presentation.Services.Navigation;
 using ALE.ACS.Presentation.Services.Session;
 
 namespace ALE.ACS.Presentation.ViewModels.Projects;
 
 public class ProjectExplorerViewModel : ViewModelBase
 {
-    private readonly FakeProjectService _projectService;
+    private readonly IProjectExplorerService _projectExplorerService;
+    private readonly INavigationService _navigationService;
     private readonly IProjectSession _projectSession;
+    private TreeNode? _selectedNode;
 
     public ObservableCollection<TreeNode> ProjectItems { get; }
 
+    public TreeNode? SelectedNode
+    {
+        get => _selectedNode;
+        set
+        {
+            if (ReferenceEquals(_selectedNode, value))
+                return;
+
+            _selectedNode = value;
+            _navigationService.SelectNode(value);
+            OnPropertyChanged();
+        }
+    }
+
     public ProjectExplorerViewModel(
-        FakeProjectService projectService,
+        IProjectExplorerService projectExplorerService,
         IProjectSession projectSession)
     {
-        _projectService = projectService;
+        _projectExplorerService = projectExplorerService;
+        _navigationService = NavigationService.Current;
         _projectSession = projectSession;
+
         ProjectItems = new ObservableCollection<TreeNode>();
 
         _projectSession.CurrentProjectChanged += OnCurrentProjectChanged;
+
         RefreshProjectItems();
     }
 
@@ -34,7 +54,7 @@ public class ProjectExplorerViewModel : ViewModelBase
     {
         ProjectItems.Clear();
 
-        var projectNodes = _projectService.LoadProject();
+        var projectNodes = _projectExplorerService.LoadProjectTree();
         var rootNode = projectNodes.FirstOrDefault();
 
         if (rootNode is null)
@@ -46,5 +66,7 @@ public class ProjectExplorerViewModel : ViewModelBase
         {
             ProjectItems.Add(item);
         }
+
+        SelectedNode = rootNode;
     }
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using ALE.ACS.Application.Interfaces;
 using ALE.ACS.Domain.Projects;
 using ALE.ACS.Presentation.Services.Dialogs;
+using ALE.ACS.Presentation.Services.Navigation;
 using ALE.ACS.Presentation.Services.Session;
 using ALE.ACS.Presentation.Shell.Dialogs.Projects;
 using ALE.ACS.Presentation.Views;
@@ -15,6 +16,7 @@ namespace ALE.ACS.Presentation.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IDialogService _dialogService;
+    private readonly INavigationService _navigationService;
     private readonly IProjectService _projectService;
     private readonly IProjectSession _projectSession;
 
@@ -37,9 +39,11 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Texto exibido na barra de status da IDE.
     /// </summary>
     public string StatusText =>
-        CurrentProject is null
-            ? "Ready"
-            : $"Project: {CurrentProject.Name}";
+        !string.IsNullOrWhiteSpace(_navigationService.StatusMessage)
+            ? _navigationService.StatusMessage
+            : CurrentProject is null
+                ? "Ready"
+                : $"Project: {CurrentProject.Name}";
 
     /// <summary>
     /// Conteúdo exibido na área de trabalho da IDE.
@@ -53,9 +57,13 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Conteúdo exibido no painel de propriedades.
     /// </summary>
     public string PropertiesContent =>
-        CurrentProject is null
-            ? "No project selected."
-            : $"Name: {CurrentProject.Name}\nFile: {CurrentProject.FileName ?? "Not saved"}\nDirty: {(CurrentProject.IsDirty ? "Yes" : "No")}";
+        !string.IsNullOrWhiteSpace(_navigationService.PropertiesMessage)
+            ? _navigationService.PropertiesMessage
+            : CurrentProject is null
+                ? "No project selected."
+                : $"Name: {CurrentProject.Name}\nFile: {CurrentProject.FileName ?? "Not saved"}\nDirty: {(CurrentProject.IsDirty ? "Yes" : "No")}";
+
+    public string OutputContent => _navigationService.OutputMessage;
 
     public MainWindowViewModel(
         IDialogService dialogService,
@@ -64,8 +72,11 @@ public partial class MainWindowViewModel : ViewModelBase
         WorkspaceViewModel workspaceViewModel)
     {
         _dialogService = dialogService;
+        _navigationService = NavigationService.Current;
         _projectService = projectService;
         _projectSession = projectSession;
+
+        _navigationService.NavigationChanged += OnNavigationChanged;
 
         WorkspaceView = new WorkspaceView
         {
@@ -79,6 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(WorkspaceContent));
         OnPropertyChanged(nameof(PropertiesContent));
+        OnPropertyChanged(nameof(OutputContent));
 
         if (value is null)
         {
@@ -87,6 +99,13 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         _projectSession.SetCurrentProject(value);
+    }
+
+    private void OnNavigationChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(PropertiesContent));
+        OnPropertyChanged(nameof(OutputContent));
     }
 
     [RelayCommand]

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Services.Documents;
+using ALE.ACS.Presentation.Services.Navigation;
 using ALE.ACS.Presentation.Services.Session;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,15 +14,21 @@ namespace ALE.ACS.Presentation.ViewModels;
 public partial class WorkspaceViewModel : ViewModelBase
 {
     private readonly IDocumentService _documentService;
+    private readonly INavigationService _navigationService;
     private readonly IProjectSession _projectSession;
+    private bool _isSyncingNavigation;
 
     public WorkspaceViewModel(IDocumentService documentService, IProjectSession projectSession)
     {
         _documentService = documentService;
+        _navigationService = NavigationService.Current;
         _projectSession = projectSession;
 
+        _navigationService.Initialize(_documentService);
+        _navigationService.NavigationChanged += OnNavigationChanged;
+
         Documents = new ObservableCollection<EngineeringDocument>(_documentService.Documents);
-        ActiveDocument = _documentService.ActiveDocument;
+        ActiveDocument = _navigationService.ActiveDocument ?? _documentService.ActiveDocument;
 
         _projectSession.CurrentProjectChanged += OnCurrentProjectChanged;
     }
@@ -30,6 +37,14 @@ public partial class WorkspaceViewModel : ViewModelBase
 
     [ObservableProperty]
     private EngineeringDocument? activeDocument;
+
+    partial void OnActiveDocumentChanged(EngineeringDocument? value)
+    {
+        if (_isSyncingNavigation || value is null)
+            return;
+
+        _navigationService.ActivateDocument(value.Id);
+    }
 
     public string WorkspaceTitle => _projectSession.CurrentProject is null
         ? "Workspace"
@@ -65,12 +80,19 @@ public partial class WorkspaceViewModel : ViewModelBase
             Documents.Add(document);
         }
 
-        ActiveDocument = _documentService.ActiveDocument;
+        _isSyncingNavigation = true;
+        ActiveDocument = _navigationService.ActiveDocument ?? _documentService.ActiveDocument;
+        _isSyncingNavigation = false;
         OnPropertyChanged(nameof(WorkspaceTitle));
     }
 
     private void OnCurrentProjectChanged(object? sender, ALE.ACS.Domain.Projects.Project? project)
     {
         OnPropertyChanged(nameof(WorkspaceTitle));
+    }
+
+    private void OnNavigationChanged(object? sender, EventArgs e)
+    {
+        RefreshDocuments();
     }
 }

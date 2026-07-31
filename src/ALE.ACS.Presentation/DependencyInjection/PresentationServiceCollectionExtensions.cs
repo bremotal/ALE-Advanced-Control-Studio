@@ -2,6 +2,7 @@
 using ALE.ACS.Application.Projects;
 using ALE.ACS.Presentation.Services.Dialogs;
 using ALE.ACS.Presentation.Services.Documents;
+using ALE.ACS.Presentation.Services.Explorer;
 using ALE.ACS.Presentation.Services.Session;
 using ALE.ACS.Presentation.Shell.Dialogs.Projects;
 using ALE.ACS.Presentation.ViewModels;
@@ -22,6 +23,7 @@ public static class PresentationServiceCollectionExtensions
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IProjectSession, ProjectSession>();
         services.AddSingleton<IDocumentService, DocumentService>();
+        services.AddSingleton<IProjectExplorerService, ProjectExplorerService>();
         services.AddSingleton<ALE.ACS.Presentation.Services.Projects.IProjectService, ALE.ACS.Presentation.Services.Projects.ProjectService>();
 
         // Serviços da Application
