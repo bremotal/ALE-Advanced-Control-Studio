@@ -1,76 +1,62 @@
-﻿using ALE.ACS.Engine.Fuzzy.Types;
-
-namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
+﻿namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 
 /// <summary>
-/// Represents a trapezoidal membership function.
+/// Represents a trapezoidal membership function defined by points a, b, c, and d.
 /// </summary>
-public sealed class TrapezoidalMembershipFunction
-    : PointBasedMembershipFunctionBase
+public sealed class TrapezoidalMembershipFunction : MembershipFunctionBase
 {
+    private readonly double _a;
+    private readonly double _b;
+    private readonly double _c;
+    private readonly double _d;
+
     /// <summary>
-    /// Initializes a new instance of the
-    /// <see cref="TrapezoidalMembershipFunction"/> class.
+    /// Initializes a new instance of the <see cref="TrapezoidalMembershipFunction"/> class.
     /// </summary>
-    /// <param name="name">
-    /// Membership function name.
-    /// </param>
-    /// <param name="left">
-    /// Left foot.
-    /// </param>
-    /// <param name="leftShoulder">
-    /// Left shoulder.
-    /// </param>
-    /// <param name="rightShoulder">
-    /// Right shoulder.
-    /// </param>
-    /// <param name="right">
-    /// Right foot.
-    /// </param>
+    /// <param name="a">Left foot point.</param>
+    /// <param name="b">Left shoulder point.</param>
+    /// <param name="c">Right shoulder point.</param>
+    /// <param name="d">Right foot point.</param>
     /// <exception cref="ArgumentException">
-    /// Thrown when the parameters do not define a valid trapezoidal
-    /// membership function.
+    /// Thrown when <c>a &lt; b &lt;= c &lt; d</c> is not satisfied.
     /// </exception>
-    public TrapezoidalMembershipFunction(
-        string name,
-        double left,
-        double leftShoulder,
-        double rightShoulder,
-        double right)
-        : base(
-            name,
-            [
-                new MembershipPoint(left, 0.0),
-                new MembershipPoint(leftShoulder, 1.0),
-                new MembershipPoint(rightShoulder, 1.0),
-                new MembershipPoint(right, 0.0)
-            ])
+    public TrapezoidalMembershipFunction(double a, double b, double c, double d)
+        : base("Trapezoidal")
     {
-        if (left >= leftShoulder)
+        if (!(a < b && b <= c && c < d))
         {
             throw new ArgumentException(
-                "The left point must be less than the left shoulder.",
-                nameof(left));
+                "Invalid trapezoidal points. The relation a < b <= c < d must be satisfied.");
         }
 
-        if (leftShoulder > rightShoulder)
-        {
-            throw new ArgumentException(
-                "The left shoulder must be less than or equal to the right shoulder.",
-                nameof(leftShoulder));
-        }
-
-        if (rightShoulder >= right)
-        {
-            throw new ArgumentException(
-                "The right shoulder must be less than the right point.",
-                nameof(rightShoulder));
-        }
+        _a = a;
+        _b = b;
+        _c = c;
+        _d = d;
     }
 
-    /// <inheritdoc />
-    public override double GetMembership(double x)
+    /// <summary>
+    /// Evaluates the trapezoidal membership degree for a given value.
+    /// </summary>
+    /// <param name="x">Input value.</param>
+    /// <returns>The membership degree in the range [0, 1].</returns>
+    public override double Evaluate(double x)
     {
-        return Interpolate(x);
+        if (x < _a || x > _d)
+            return 0.0;
+
+        if (NearlyEqual(x, _a) || NearlyEqual(x, _d))
+            return 0.0;
+
+        if (x > _a && x < _b)
+            return (x - _a) / (_b - _a);
+
+        if ((x > _b || NearlyEqual(x, _b))
+            && (x < _c || NearlyEqual(x, _c)))
+        {
+            return 1.0;
+        }
+
+        return (_d - x) / (_d - _c);
     }
 }

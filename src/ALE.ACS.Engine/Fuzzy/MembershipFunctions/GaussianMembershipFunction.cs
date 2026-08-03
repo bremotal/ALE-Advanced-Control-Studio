@@ -49,7 +49,7 @@ public sealed class GaussianMembershipFunction : MembershipFunctionBase
     }
 
     /// <inheritdoc />
-    public override double GetMembership(double x)
+    public override double Evaluate(double x)
     {
         var delta = x - Mean;
 

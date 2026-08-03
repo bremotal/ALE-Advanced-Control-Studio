@@ -1,8 +1,7 @@
 using ALE.ACS.Presentation.Models;
-using ALE.ACS.Presentation.Models.Fuzzy;
+using ALE.ACS.Presentation.Controllers.Fuzzy.Model;
 using ALE.ACS.Presentation.Services.Documents;
-using ALE.ACS.Presentation.ViewModels.Fuzzy;
-using ALE.ACS.Presentation.Views.Fuzzy;
+using ALE.ACS.Presentation.Controllers.Fuzzy.ViewModels;
 
 namespace ALE.ACS.Presentation.Services.Navigation;
 
@@ -16,6 +15,8 @@ public sealed class NavigationService : INavigationService
     public TreeNode? SelectedNode { get; private set; }
 
     public EngineeringDocument? ActiveDocument { get; private set; }
+
+    public object? ActiveEditorViewModel { get; private set; }
 
     public string StatusMessage { get; private set; } = "Ready";
 
@@ -40,6 +41,7 @@ public sealed class NavigationService : INavigationService
             StatusMessage = "Ready";
             PropertiesMessage = "No selection.";
             OutputMessage = "Selection cleared.";
+            ActiveEditorViewModel = null;
             RaiseNavigationChanged();
             return;
         }
@@ -50,6 +52,7 @@ public sealed class NavigationService : INavigationService
         if (IsFuzzyController(node))
         {
             OpenFuzzyEditor(node.Name);
+            OutputMessage = $"Controller changed: {node.Name}. Document opened: {node.Name}.";
             RaiseNavigationChanged();
             return;
         }
@@ -62,10 +65,12 @@ public sealed class NavigationService : INavigationService
                 node.Type.ToString());
 
             ActiveDocument = _documentService.ActiveDocument;
-            OutputMessage = $"Opened document: {node.Name}";
+            ActiveEditorViewModel = null;
+            OutputMessage = $"Controller changed: {node.Name}. Document opened: {node.Name}.";
         }
         else
         {
+            ActiveEditorViewModel = null;
             OutputMessage = $"Selected node: {node.Name}";
         }
 
@@ -84,14 +89,33 @@ public sealed class NavigationService : INavigationService
         {
             StatusMessage = "No active document.";
             OutputMessage = "Active document cleared.";
+            ActiveEditorViewModel = null;
             RaiseNavigationChanged();
             return;
         }
+
+        ActiveEditorViewModel = ResolveEditorViewModel(ActiveDocument);
 
         StatusMessage = $"Document: {ActiveDocument.Title}";
         PropertiesMessage = $"Name: {ActiveDocument.Title}\nType: {ActiveDocument.Kind}\nDirty: {(ActiveDocument.IsDirty ? "Yes" : "No")}";
         OutputMessage = $"Activated document: {ActiveDocument.Title}";
 
+        RaiseNavigationChanged();
+    }
+
+    public void NotifyDocumentClosed(string documentTitle)
+    {
+        if (string.IsNullOrWhiteSpace(documentTitle))
+            return;
+
+        OutputMessage = $"Document closed: {documentTitle}";
+        RaiseNavigationChanged();
+    }
+
+    public void NotifyValidation(string source, bool isValid, string message)
+    {
+        var status = isValid ? "OK" : "FAILED";
+        OutputMessage = $"Validation [{source}] {status}: {message}";
         RaiseNavigationChanged();
     }
 
@@ -116,9 +140,6 @@ public sealed class NavigationService : INavigationService
         {
             var viewModel = new FuzzyEditorViewModel();
             viewModel.LoadController(model);
-
-            // Keep the view-model instance available for future editor integration.
-            _ = new FuzzyEditorView { DataContext = viewModel };
             _fuzzyEditors[editorName] = viewModel;
         }
         else
@@ -132,9 +153,21 @@ public sealed class NavigationService : INavigationService
             "Fuzzy");
 
         ActiveDocument = _documentService.ActiveDocument;
+        ActiveEditorViewModel = _fuzzyEditors[editorName];
         StatusMessage = $"Fuzzy editor: {editorName}";
         PropertiesMessage = $"Name: {model.Name}\nType: Fuzzy Controller\nInputs: {model.Inputs.Count}\nOutputs: {model.Outputs.Count}";
-        OutputMessage = $"Fuzzy editor opened for {editorName}.";
+        OutputMessage = $"Document opened: {editorName}";
+    }
+
+    private object? ResolveEditorViewModel(EngineeringDocument document)
+    {
+        if (string.Equals(document.Kind, "Fuzzy", StringComparison.OrdinalIgnoreCase)
+            && _fuzzyEditors.TryGetValue(document.Title, out var fuzzyViewModel))
+        {
+            return fuzzyViewModel;
+        }
+
+        return null;
     }
 
     private static FuzzyControllerModel CreateFuzzyControllerModel(string name)

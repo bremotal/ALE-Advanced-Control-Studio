@@ -9,6 +9,8 @@ public interface INavigationService
 
     EngineeringDocument? ActiveDocument { get; }
 
+    object? ActiveEditorViewModel { get; }
+
     string StatusMessage { get; }
 
     string PropertiesMessage { get; }
@@ -22,4 +24,8 @@ public interface INavigationService
     void SelectNode(TreeNode? node);
 
     void ActivateDocument(string documentId);
+
+    void NotifyDocumentClosed(string documentTitle);
+
+    void NotifyValidation(string source, bool isValid, string message);
 }

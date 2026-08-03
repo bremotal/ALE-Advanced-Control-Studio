@@ -41,7 +41,11 @@ public sealed class ProjectExplorerService : IProjectExplorerService
             {
                 new TreeNode { Name = "Fuzzy Controller", Type = ProjectItemType.Controller },
                 new TreeNode { Name = "MPC Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "Adaptive MPC", Type = ProjectItemType.Controller }
+                new TreeNode { Name = "Adaptive Controller", Type = ProjectItemType.Controller },
+                new TreeNode { Name = "Neural Controller", Type = ProjectItemType.Controller },
+                new TreeNode { Name = "Identification Controller", Type = ProjectItemType.Controller },
+                new TreeNode { Name = "Optimization Controller", Type = ProjectItemType.Controller },
+                new TreeNode { Name = "PID Controller", Type = ProjectItemType.Controller }
             }
         };
     }

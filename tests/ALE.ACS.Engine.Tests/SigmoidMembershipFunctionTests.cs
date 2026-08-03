@@ -38,7 +38,7 @@ public sealed class SigmoidMembershipFunctionTests
             slope: 2.0,
             center: 5.0);
 
-        var membership = function.GetMembership(5.0);
+        var membership = function.Evaluate(5.0);
 
         membership.Should().BeApproximately(0.5, 1e-12);
     }
@@ -51,7 +51,7 @@ public sealed class SigmoidMembershipFunctionTests
             slope: 2.0,
             center: 0.0);
 
-        function.GetMembership(100.0)
+        function.Evaluate(100.0)
             .Should()
             .BeGreaterThan(0.999999);
     }
@@ -64,7 +64,7 @@ public sealed class SigmoidMembershipFunctionTests
             slope: 2.0,
             center: 0.0);
 
-        function.GetMembership(-100.0)
+        function.Evaluate(-100.0)
             .Should()
             .BeLessThan(0.000001);
     }
@@ -77,7 +77,7 @@ public sealed class SigmoidMembershipFunctionTests
             slope: -2.0,
             center: 0.0);
 
-        function.GetMembership(-100.0)
+        function.Evaluate(-100.0)
             .Should()
             .BeGreaterThan(0.999999);
     }
@@ -90,7 +90,7 @@ public sealed class SigmoidMembershipFunctionTests
             slope: -2.0,
             center: 0.0);
 
-        function.GetMembership(100.0)
+        function.Evaluate(100.0)
             .Should()
             .BeLessThan(0.000001);
     }
@@ -103,9 +103,9 @@ public sealed class SigmoidMembershipFunctionTests
             slope: 2.0,
             center: 0.0);
 
-        var a = function.GetMembership(-1.0);
-        var b = function.GetMembership(0.0);
-        var c = function.GetMembership(1.0);
+        var a = function.Evaluate(-1.0);
+        var b = function.Evaluate(0.0);
+        var c = function.Evaluate(1.0);
 
         a.Should().BeLessThan(b);
         b.Should().BeLessThan(c);
@@ -119,9 +119,9 @@ public sealed class SigmoidMembershipFunctionTests
             slope: -2.0,
             center: 0.0);
 
-        var a = function.GetMembership(-1.0);
-        var b = function.GetMembership(0.0);
-        var c = function.GetMembership(1.0);
+        var a = function.Evaluate(-1.0);
+        var b = function.Evaluate(0.0);
+        var c = function.Evaluate(1.0);
 
         a.Should().BeGreaterThan(b);
         b.Should().BeGreaterThan(c);

@@ -59,7 +59,7 @@ public sealed class SingletonMembershipFunction : MembershipFunctionBase
     public double Position { get; }
 
     /// <inheritdoc />
-    public override double GetMembership(double x)
+    public override double Evaluate(double x)
     {
         return x.Equals(Position) ? 1.0 : 0.0;
     }

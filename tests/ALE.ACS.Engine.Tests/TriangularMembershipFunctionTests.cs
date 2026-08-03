@@ -7,93 +7,80 @@ public sealed class TriangularMembershipFunctionTests
 {
     private static TriangularMembershipFunction CreateDefault()
     {
-        return new TriangularMembershipFunction(
-            "Triangle",
-            0.0,
-            5.0,
-            10.0);
-    }
-
-    #region Construction
-
-    [Fact]
-    public void Constructor_Should_Create_Instance()
-    {
-        var function = CreateDefault();
-
-        Assert.NotNull(function);
-        Assert.Equal("Triangle", function.Name);
-    }
-
-    [Fact]
-    public void Should_Throw_When_Name_Is_Null()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            new TriangularMembershipFunction(
-                null!,
-                0.0,
-                5.0,
-                10.0));
+        return new TriangularMembershipFunction(0.0, 5.0, 10.0);
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("   ")]
-    public void Should_Throw_When_Name_Is_WhiteSpace(string name)
-    {
-        Assert.Throws<ArgumentException>(() =>
-            new TriangularMembershipFunction(
-                name,
-                0.0,
-                5.0,
-                10.0));
-    }
-
-    [Fact]
-    public void Should_Throw_When_Left_Is_Greater_Than_Center()
-    {
-        Assert.Throws<ArgumentException>(() =>
-            new TriangularMembershipFunction(
-                "Triangle",
-                5.0,
-                5.0,
-                10.0));
-    }
-
-    [Fact]
-    public void Should_Throw_When_Center_Is_Greater_Than_Right()
-    {
-        Assert.Throws<ArgumentException>(() =>
-            new TriangularMembershipFunction(
-                "Triangle",
-                0.0,
-                10.0,
-                10.0));
-    }
-
-    #endregion
-
-    #region Evaluation
-
-    [Theory]
-    [InlineData(-1.0, 0.0)]
-    [InlineData(0.0, 0.0)]
-    [InlineData(2.5, 0.5)]
-    [InlineData(5.0, 1.0)]
-    [InlineData(7.5, 0.5)]
-    [InlineData(10.0, 0.0)]
-    [InlineData(11.0, 0.0)]
-    public void GetMembership_Should_Return_Expected_Value(
-        double input,
-        double expected)
+    [InlineData(-1.0)]
+    [InlineData(11.0)]
+    public void Evaluate_Should_Return_Zero_When_X_Is_Outside_Interval(double x)
     {
         var function = CreateDefault();
 
-        var result = function.GetMembership(input);
+        var result = function.Evaluate(x);
 
-        Assert.Equal(expected, result, 6);
+        Assert.Equal(0.0, result, 6);
     }
 
-    #endregion
+    [Fact]
+    public void Evaluate_Should_Return_Zero_When_X_Equals_A()
+    {
+        var function = CreateDefault();
+
+        var result = function.Evaluate(0.0);
+
+        Assert.Equal(0.0, result, 6);
+    }
+
+    [Fact]
+    public void Evaluate_Should_Return_Rising_Value_When_A_Is_Less_Than_X_And_X_Is_Less_Than_B()
+    {
+        var function = CreateDefault();
+
+        var result = function.Evaluate(2.5);
+
+        Assert.Equal(0.5, result, 6);
+    }
+
+    [Fact]
+    public void Evaluate_Should_Return_One_When_X_Equals_B()
+    {
+        var function = CreateDefault();
+
+        var result = function.Evaluate(5.0);
+
+        Assert.Equal(1.0, result, 6);
+    }
+
+    [Fact]
+    public void Evaluate_Should_Return_Falling_Value_When_B_Is_Less_Than_X_And_X_Is_Less_Than_C()
+    {
+        var function = CreateDefault();
+
+        var result = function.Evaluate(7.5);
+
+        Assert.Equal(0.5, result, 6);
+    }
+
+    [Fact]
+    public void Evaluate_Should_Return_Zero_When_X_Equals_C()
+    {
+        var function = CreateDefault();
+
+        var result = function.Evaluate(10.0);
+
+        Assert.Equal(0.0, result, 6);
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.0, 1.0)]
+    [InlineData(0.0, 1.0, 1.0)]
+    [InlineData(2.0, 1.0, 3.0)]
+    public void Constructor_Should_Throw_When_Points_Do_Not_Satisfy_A_Less_Than_B_Less_Than_C(
+        double a,
+        double b,
+        double c)
+    {
+        Assert.Throws<ArgumentException>(() => new TriangularMembershipFunction(a, b, c));
+    }
 }

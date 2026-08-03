@@ -1,64 +1,56 @@
-﻿using ALE.ACS.Engine.Fuzzy.Types;
-
-namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
+﻿namespace ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 
 /// <summary>
-/// Represents a triangular membership function.
+/// Represents a triangular membership function defined by points a, b, and c.
 /// </summary>
-public sealed class TriangularMembershipFunction
-    : PointBasedMembershipFunctionBase
+public sealed class TriangularMembershipFunction : MembershipFunctionBase
 {
+    private readonly double _a;
+    private readonly double _b;
+    private readonly double _c;
+
     /// <summary>
-    /// Initializes a new instance of the
-    /// <see cref="TriangularMembershipFunction"/> class.
+    /// Initializes a new instance of the <see cref="TriangularMembershipFunction"/> class.
     /// </summary>
-    /// <param name="name">
-    /// Membership function name.
-    /// </param>
-    /// <param name="left">
-    /// Left point.
-    /// </param>
-    /// <param name="center">
-    /// Peak point.
-    /// </param>
-    /// <param name="right">
-    /// Right point.
-    /// </param>
+    /// <param name="a">Left base point.</param>
+    /// <param name="b">Peak point.</param>
+    /// <param name="c">Right base point.</param>
     /// <exception cref="ArgumentException">
-    /// Thrown when the parameters do not define a valid triangular
-    /// membership function.
+    /// Thrown when <c>a &lt; b &lt; c</c> is not satisfied.
     /// </exception>
-    public TriangularMembershipFunction(
-        string name,
-        double left,
-        double center,
-        double right)
-        : base(
-            name,
-            [
-                new MembershipPoint(left, 0.0),
-                new MembershipPoint(center, 1.0),
-                new MembershipPoint(right, 0.0)
-            ])
+    public TriangularMembershipFunction(double a, double b, double c)
+        : base("Triangular")
     {
-        if (left >= center)
+        if (!(a < b && b < c))
         {
             throw new ArgumentException(
-                "The left point must be less than the center point.",
-                nameof(left));
+                "Invalid triangular points. The relation a < b < c must be satisfied.");
         }
 
-        if (center >= right)
-        {
-            throw new ArgumentException(
-                "The center point must be less than the right point.",
-                nameof(center));
-        }
+        _a = a;
+        _b = b;
+        _c = c;
     }
 
-    /// <inheritdoc />
-    public override double GetMembership(double x)
+    /// <summary>
+    /// Evaluates the triangular membership degree for a given value.
+    /// </summary>
+    /// <param name="x">Input value.</param>
+    /// <returns>The membership degree in the range [0, 1].</returns>
+    public override double Evaluate(double x)
     {
-        return Interpolate(x);
+        if (x < _a || x > _c)
+            return 0.0;
+
+        if (NearlyEqual(x, _a) || NearlyEqual(x, _c))
+            return 0.0;
+
+        if (NearlyEqual(x, _b))
+            return 1.0;
+
+        if (x < _b)
+            return (x - _a) / (_b - _a);
+
+        return (_c - x) / (_c - _b);
     }
 }

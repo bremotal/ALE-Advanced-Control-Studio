@@ -12,6 +12,10 @@
         MinWidth="1200"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+
     <DockPanel>
 
         <!-- MENU -->
@@ -44,11 +48,78 @@
                           Command="{Binding ExitApplicationCommand}"/>
             </MenuItem>
 
-            <MenuItem Header="_Projeto"/>
-            <MenuItem Header="_Controladores"/>
-            <MenuItem Header="_Ferramentas"/>
-            <MenuItem Header="_Exibir"/>
-            <MenuItem Header="_Ajuda"/>
+            <MenuItem Header="_Projeto">
+                <MenuItem Header="_Novo Projeto"
+                          Command="{Binding NewProjectCommand}"/>
+                <MenuItem Header="_Abrir Projeto"
+                          Command="{Binding OpenProjectCommand}"/>
+                <MenuItem Header="_Fechar Projeto"
+                          Command="{Binding CloseProjectCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Salvar Projeto"
+                          Command="{Binding SaveProjectCommand}"/>
+                <MenuItem Header="Salvar Projeto _Como"
+                          Command="{Binding SaveProjectAsCommand}"/>
+                <Separator/>
+                <MenuItem Header="Projetos _Recentes"
+                          ItemsSource="{Binding RecentProjects}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}"/>
+                            <Setter Property="Command" Value="{Binding DataContext.OpenRecentProjectCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="_Controladores">
+                <MenuItem Header="Novo _Fuzzy Controller"
+                          Command="{Binding NewFuzzyControllerCommand}"/>
+                <MenuItem Header="Novo _MPC Controller"
+                          Command="{Binding NewMpcControllerCommand}"/>
+                <MenuItem Header="Novo _Adaptive Controller"
+                          Command="{Binding NewAdaptiveControllerCommand}"/>
+                <MenuItem Header="Novo _Neural Controller"
+                          Command="{Binding NewNeuralControllerCommand}"/>
+                <MenuItem Header="Novo _Identification Controller"
+                          Command="{Binding NewIdentificationControllerCommand}"/>
+                <MenuItem Header="Novo _Optimization Controller"
+                          Command="{Binding NewOptimizationControllerCommand}"/>
+                <MenuItem Header="Novo _PID Controller"
+                          Command="{Binding NewPidControllerCommand}"/>
+            </MenuItem>
+
+            <MenuItem Header="_Ferramentas">
+                <MenuItem Header="_Validation"
+                          Command="{Binding RunValidationCommand}"/>
+                <MenuItem Header="_Simulation"
+                          Command="{Binding RunSimulationCommand}"/>
+                <MenuItem Header="_Options"
+                          Command="{Binding OpenOptionsCommand}"/>
+            </MenuItem>
+
+            <MenuItem Header="_Exibir">
+                <MenuItem Header="_Explorer"
+                          Command="{Binding ToggleExplorerCommand}"/>
+                <MenuItem Header="_Workspace"
+                          Command="{Binding ToggleWorkspaceCommand}"/>
+                <MenuItem Header="_Properties"
+                          Command="{Binding TogglePropertiesCommand}"/>
+                <MenuItem Header="_Output"
+                          Command="{Binding ToggleOutputCommand}"/>
+                <MenuItem Header="_Status Bar"
+                          Command="{Binding ToggleStatusBarCommand}"/>
+            </MenuItem>
+
+            <MenuItem Header="_Ajuda">
+                <MenuItem Header="_About ALE ACS"
+                          Command="{Binding ShowAboutCommand}"/>
+                <MenuItem Header="_Documentation"
+                          Command="{Binding OpenDocumentationCommand}"/>
+                <MenuItem Header="_Release Notes"
+                          Command="{Binding OpenReleaseNotesCommand}"/>
+            </MenuItem>
 
         </Menu>
 
@@ -57,10 +128,14 @@
             <ToolBar>
             <Button Content="Novo"
                 Command="{Binding NewProjectCommand}"/>
+            <Button Content="Novo Controlador"
+                Command="{Binding NewControllerCommand}"/>
             <Button Content="Abrir"
                 Command="{Binding OpenProjectCommand}"/>
             <Button Content="Salvar"
                 Command="{Binding SaveProjectCommand}"/>
+            <Button Content="Fechar Documento"
+                Command="{Binding CloseActiveDocumentCommand}"/>
             <Button Content="Fechar"
                 Command="{Binding CloseProjectCommand}"/>
             <Separator/>
@@ -72,7 +147,8 @@
         </ToolBarTray>
 
         <!-- STATUS -->
-        <StatusBar DockPanel.Dock="Bottom">
+        <StatusBar DockPanel.Dock="Bottom"
+               Visibility="{Binding IsStatusBarVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StatusBarItem>
                 <TextBlock Text="{Binding ProjectStatus, StringFormat='Project: {0}'}"/>
             </StatusBarItem>
@@ -107,7 +183,8 @@
             <Border Grid.Row="0"
                     Grid.Column="0"
                     BorderBrush="#C0C0C0"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    Visibility="{Binding IsExplorerVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
 
                 <panes:ProjectExplorerPane/>
 
@@ -117,13 +194,15 @@
             <GridSplitter Grid.Row="0"
                           Grid.Column="1"
                           Width="5"
-                          HorizontalAlignment="Stretch"/>
+                          HorizontalAlignment="Stretch"
+                          Visibility="{Binding IsExplorerVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
             <!-- Workspace -->
             <Border Grid.Row="0"
                     Grid.Column="2"
                     BorderBrush="#C0C0C0"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    Visibility="{Binding IsWorkspaceVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
 
                 <ContentControl Content="{Binding WorkspaceView}" />
 
@@ -133,13 +212,15 @@
             <GridSplitter Grid.Row="0"
                           Grid.Column="3"
                           Width="5"
-                          HorizontalAlignment="Stretch"/>
+                          HorizontalAlignment="Stretch"
+                          Visibility="{Binding IsPropertiesVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
             <!-- Properties -->
             <Border Grid.Row="0"
                     Grid.Column="4"
                     BorderBrush="#C0C0C0"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    Visibility="{Binding IsPropertiesVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
 
                 <Grid Margin="16">
 
@@ -187,13 +268,15 @@
             <GridSplitter Grid.Row="1"
                           Grid.ColumnSpan="5"
                           Height="5"
-                          VerticalAlignment="Stretch"/>
+                          VerticalAlignment="Stretch"
+                          Visibility="{Binding IsOutputVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
             <!-- Output -->
             <Border Grid.Row="2"
                     Grid.ColumnSpan="5"
                     BorderBrush="#C0C0C0"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    Visibility="{Binding IsOutputVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
 
                 <Grid Margin="12">
                     <Grid.RowDefinitions>

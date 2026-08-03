@@ -140,7 +140,7 @@ public class PiecewiseLinearMembershipFunctionTests
 
         Assert.Equal(
             expected,
-            mf.GetMembership(input),
+            mf.Evaluate(input),
             6);
     }
 
@@ -158,7 +158,7 @@ public class PiecewiseLinearMembershipFunctionTests
 
         Assert.Equal(
             0.0,
-            mf.GetMembership(input),
+            mf.Evaluate(input),
             6);
     }
 

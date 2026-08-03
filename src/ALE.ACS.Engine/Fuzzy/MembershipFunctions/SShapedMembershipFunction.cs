@@ -85,7 +85,7 @@ public sealed class SShapedMembershipFunction : MembershipFunctionBase
     public double Right { get; }
 
     /// <inheritdoc />
-    public override double GetMembership(double x)
+    public override double Evaluate(double x)
     {
         if (x <= Left)
         {

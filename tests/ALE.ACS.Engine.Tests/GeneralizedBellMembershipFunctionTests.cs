@@ -59,7 +59,7 @@ public sealed class GeneralizedBellMembershipFunctionTests
             slope: 2.0,
             center: 5.0);
 
-        var membership = function.GetMembership(5.0);
+        var membership = function.Evaluate(5.0);
 
         membership.Should().BeApproximately(1.0, 1e-12);
     }
@@ -73,8 +73,8 @@ public sealed class GeneralizedBellMembershipFunctionTests
             slope: 2.0,
             center: 5.0);
 
-        var left = function.GetMembership(3.0);
-        var right = function.GetMembership(7.0);
+        var left = function.Evaluate(3.0);
+        var right = function.Evaluate(7.0);
 
         left.Should().BeApproximately(right, 1e-12);
     }
@@ -88,9 +88,9 @@ public sealed class GeneralizedBellMembershipFunctionTests
             slope: 2.0,
             center: 0.0);
 
-        var center = function.GetMembership(0.0);
-        var near = function.GetMembership(1.0);
-        var far = function.GetMembership(10.0);
+        var center = function.Evaluate(0.0);
+        var near = function.Evaluate(1.0);
+        var far = function.Evaluate(10.0);
 
         center.Should().BeGreaterThan(near);
         near.Should().BeGreaterThan(far);
@@ -105,7 +105,7 @@ public sealed class GeneralizedBellMembershipFunctionTests
             slope: 4.0,
             center: 0.0);
 
-        var membership = function.GetMembership(100.0);
+        var membership = function.Evaluate(100.0);
 
         membership.Should().BeLessThan(1e-8);
     }
@@ -119,7 +119,7 @@ public sealed class GeneralizedBellMembershipFunctionTests
             slope: 2.0,
             center: 0.0);
 
-        var actual = function.GetMembership(2.0);
+        var actual = function.Evaluate(2.0);
 
         actual.Should().BeApproximately(0.5, 1e-12);
     }

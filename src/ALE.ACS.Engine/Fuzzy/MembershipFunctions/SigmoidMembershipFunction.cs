@@ -31,7 +31,7 @@ public sealed class SigmoidMembershipFunction : MembershipFunctionBase
         Center = center;
     }
 
-    public override double GetMembership(double x)
+    public override double Evaluate(double x)
     {
         var exponent = -Slope * (x - Center);
 

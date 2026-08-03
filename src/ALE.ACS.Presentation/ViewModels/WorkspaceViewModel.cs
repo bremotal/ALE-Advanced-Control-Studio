@@ -47,6 +47,9 @@ public partial class WorkspaceViewModel : ViewModelBase
     [ObservableProperty]
     private EngineeringDocument? activeDocument;
 
+    [ObservableProperty]
+    private object? activeEngineeringEditorViewModel;
+
     partial void OnActiveDocumentChanged(EngineeringDocument? value)
     {
         if (_isSyncingNavigation)
@@ -82,7 +85,10 @@ public partial class WorkspaceViewModel : ViewModelBase
         if (ActiveDocument is null)
             return;
 
+        var closedTitle = ActiveDocument.Title;
+
         _documentService.CloseDocument(ActiveDocument.Id);
+        _navigationService.NotifyDocumentClosed(closedTitle);
 
         RefreshDocuments();
     }
@@ -94,6 +100,7 @@ public partial class WorkspaceViewModel : ViewModelBase
             return;
 
         _documentService.CloseDocument(document.Id);
+        _navigationService.NotifyDocumentClosed(document.Title);
 
         RefreshDocuments();
     }
@@ -119,6 +126,8 @@ public partial class WorkspaceViewModel : ViewModelBase
             ActiveDocument =
                 _navigationService.ActiveDocument
                 ?? _documentService.ActiveDocument;
+
+            ActiveEngineeringEditorViewModel = _navigationService.ActiveEditorViewModel;
 
             _isSyncingNavigation = false;
 
@@ -149,6 +158,8 @@ public partial class WorkspaceViewModel : ViewModelBase
         ActiveDocument =
             _navigationService.ActiveDocument
             ?? _documentService.ActiveDocument;
+
+        ActiveEngineeringEditorViewModel = _navigationService.ActiveEditorViewModel;
 
         _isSyncingNavigation = false;
 

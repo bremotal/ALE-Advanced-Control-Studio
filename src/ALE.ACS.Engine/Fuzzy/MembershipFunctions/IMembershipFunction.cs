@@ -15,5 +15,5 @@ public interface IMembershipFunction
     /// </summary>
     /// <param name="x">Valor de entrada.</param>
     /// <returns>Valor entre 0.0 e 1.0.</returns>
-    double GetMembership(double x);
+    double Evaluate(double x);
 }

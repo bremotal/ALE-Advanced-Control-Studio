@@ -88,7 +88,7 @@ public class GaussianMembershipFunctionTests
     {
         var mf = CreateDefault();
 
-        Assert.Equal(1.0, mf.GetMembership(0.0), 6);
+        Assert.Equal(1.0, mf.Evaluate(0.0), 6);
     }
 
     [Theory]
@@ -100,8 +100,8 @@ public class GaussianMembershipFunctionTests
     {
         var mf = CreateDefault();
 
-        var left = mf.GetMembership(-delta);
-        var right = mf.GetMembership(delta);
+        var left = mf.Evaluate(-delta);
+        var right = mf.Evaluate(delta);
 
         Assert.Equal(left, right, 6);
     }
@@ -114,7 +114,7 @@ public class GaussianMembershipFunctionTests
     {
         var mf = CreateDefault();
 
-        Assert.True(mf.GetMembership(x) < 1e-5);
+        Assert.True(mf.Evaluate(x) < 1e-5);
     }
 
     #endregion
@@ -130,7 +130,7 @@ public class GaussianMembershipFunctionTests
 
         Assert.Equal(
             0.0,
-            mf.GetMembership(input),
+            mf.Evaluate(input),
             Tolerance);
     }
 

@@ -31,7 +31,7 @@ public sealed class PiecewiseLinearMembershipFunction
     }
 
     /// <inheritdoc />
-    public override double GetMembership(double x)
+    public override double Evaluate(double x)
     {
         return Interpolate(x);
     }

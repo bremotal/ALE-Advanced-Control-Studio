@@ -118,7 +118,7 @@ public sealed class PiShapedMembershipFunction : MembershipFunctionBase
     public double RightFoot { get; }
 
     /// <inheritdoc />
-    public override double GetMembership(double x)
+    public override double Evaluate(double x)
     {
         if (x <= LeftFoot)
         {
@@ -132,7 +132,7 @@ public sealed class PiShapedMembershipFunction : MembershipFunctionBase
 
         if (x < LeftShoulder)
         {
-            return _leftFunction.GetMembership(x);
+            return _leftFunction.Evaluate(x);
         }
 
         if (x <= RightShoulder)
@@ -140,6 +140,6 @@ public sealed class PiShapedMembershipFunction : MembershipFunctionBase
             return 1.0;
         }
 
-        return _rightFunction.GetMembership(x);
+        return _rightFunction.Evaluate(x);
     }
 }
