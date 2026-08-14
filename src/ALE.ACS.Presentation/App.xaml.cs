@@ -12,7 +12,7 @@ namespace ALE.ACS.Presentation;
 public partial class App : System.Windows.Application
 {
     private readonly IHost _host;
-
+    public IServiceProvider Services => _host.Services;
     public App()
     {
         _host = Host

@@ -1,8 +1,13 @@
+using System.Collections.ObjectModel;
 using ALE.ACS.Presentation.Models;
 
 namespace ALE.ACS.Presentation.Services.Explorer;
 
 public interface IProjectExplorerService
 {
-    IReadOnlyList<TreeNode> LoadProjectTree();
+    ObservableCollection<TreeNode> ProjectItems { get; }
+
+    void AddModel(string modelName);
+
+    void AddController(string controllerName);
 }

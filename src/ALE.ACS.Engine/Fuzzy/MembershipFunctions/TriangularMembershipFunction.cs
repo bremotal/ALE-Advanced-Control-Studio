@@ -53,4 +53,9 @@ public sealed class TriangularMembershipFunction : MembershipFunctionBase
 
         return (_c - x) / (_c - _b);
     }
+
+    public override (double Min, double Max) GetSupportBounds()
+    {
+        return (_a, _c);
+    }
 }

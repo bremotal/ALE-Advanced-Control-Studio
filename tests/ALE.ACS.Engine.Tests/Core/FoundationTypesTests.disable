@@ -1,0 +1,155 @@
+using ALE.ACS.Engine.Core.Applications;
+using ALE.ACS.Engine.Core.Common.DependencyInjection;
+using ALE.ACS.Engine.Core.Common.Events;
+using ALE.ACS.Engine.Core.Common.Serialization;
+using ALE.ACS.Engine.Core.Connections;
+using ALE.ACS.Engine.Core.Diagnostics;
+using ALE.ACS.Engine.Core.Execution;
+using ALE.ACS.Engine.Core.Export;
+using ALE.ACS.Engine.Core.Plugins;
+using ALE.ACS.Engine.Core.Projects;
+using ALE.ACS.Engine.Core.Runtime;
+using ALE.ACS.Engine.Core.Simulation;
+using ALE.ACS.Engine.Core.Validation;
+
+namespace ALE.ACS.Engine.Tests.Core;
+
+public sealed class FoundationTypesTests
+{
+    [Fact]
+    public void FoundationTypes_CanBeInstantiated()
+    {
+        var project = new EngineeringProject(Guid.NewGuid(), "Test", null, "1.0", null, null);
+        var application = new ControlApplication(Guid.NewGuid(), "App", null, null);
+        var strategy = new EngineeringStrategy(Guid.NewGuid(), "Strategy", null, null);
+        var block = new EngineeringBlock(Guid.NewGuid(), "Block", null, null, null, null, null);
+        var variable = new EngineeringVariable(Guid.NewGuid(), "Variable", null, null, 0, 1, true);
+        var connection = new EngineeringConnection(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+
+        var executionContext = new ExecutionContext(project, application, strategy, [variable], new Dictionary<string, object?>());
+        var executionPipeline = new ExecutionPipeline();
+        var executionGraph = new ExecutionGraph();
+        var executionNode = new ExecutionNode(Guid.NewGuid(), "Node");
+        var executionResult = new ExecutionResult(true);
+        var executionStatistics = new ExecutionStatistics();
+
+        var validationContext = new ValidationContext(new Dictionary<string, object?>());
+        var validationPipeline = new ValidationPipeline();
+        var validationResult = new ValidationResult();
+        var validationMessage = new ValidationMessage(ValidationSeverity.Warning, ValidationCategory.General, "code", "msg");
+        var validationRule = new TestValidationRule();
+
+        var diagnosticsManager = new DiagnosticsManager();
+        var diagnosticMessage = new DiagnosticMessage(ValidationSeverity.Warning, ValidationCategory.General, "code", "msg");
+        var executionLog = new ExecutionLog();
+        var recommendation = new Recommendation("code", "msg");
+        var warningRecord = new WarningRecord("code", "msg");
+
+        var pluginDescriptor = new PluginDescriptor("test", "1.0");
+        var pluginManager = new PluginManager();
+
+        var persistenceManager = new PersistenceManager(Array.Empty<IPersistenceProvider>());
+        var repository = new ProjectRepository(persistenceManager);
+        var snapshot = new ProjectSnapshot(project.Id.ToString(), project.Name, project.Version, DateTime.UtcNow, DateTime.UtcNow, "payload", new Dictionary<string, string>());
+        var saveOptions = new SaveOptions("default");
+        var loadOptions = new LoadOptions("default");
+        var deleteOptions = new DeleteOptions("default");
+
+        var serializer = new TestSerializer();
+        var registry = new SerializerRegistry();
+        registry.Register(serializer);
+        var serializationContext = new SerializationContext(null);
+
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddTransient(typeof(string), typeof(string));
+        var serviceProvider = new ServiceProvider(serviceCollection);
+
+        var eventBus = new EventBus();
+        var eventDispatcher = new EventDispatcher(eventBus);
+        var eventContext = new EventContext(new Dictionary<string, object?>());
+        var eventSubscription = new EventSubscription(new TestEventHandler(), EventPriority.Normal);
+
+        var simulationContext = new SimulationContext(project, application, strategy, [variable], TimeSpan.Zero);
+        var simulationEngine = new SimulationEngine();
+        var simulationResult = new SimulationResult(true);
+        var runtimeContext = new RuntimeContext(project, application, strategy, [variable]);
+        var runtimeEngine = new RuntimeEngine();
+        var runtimeResult = new RuntimeResult(true);
+
+        var exportRequest = new ExportRequest(project, application, strategy, ExportFormat.Json);
+        var exportArtifact = new ExportArtifact("artifact", "json", "payload", "utf-8", new Dictionary<string, string>());
+        var exportManager = new ExportManager();
+
+        Assert.NotNull(project);
+        Assert.NotNull(application);
+        Assert.NotNull(strategy);
+        Assert.NotNull(block);
+        Assert.NotNull(variable);
+        Assert.NotNull(connection);
+        Assert.NotNull(executionContext);
+        Assert.NotNull(executionPipeline);
+        Assert.NotNull(executionGraph);
+        Assert.NotNull(executionNode);
+        Assert.NotNull(executionResult);
+        Assert.NotNull(executionStatistics);
+        Assert.NotNull(validationContext);
+        Assert.NotNull(validationPipeline);
+        Assert.NotNull(validationResult);
+        Assert.NotNull(validationMessage);
+        Assert.NotNull(validationRule);
+        Assert.NotNull(diagnosticsManager);
+        Assert.NotNull(diagnosticMessage);
+        Assert.NotNull(executionLog);
+        Assert.NotNull(recommendation);
+        Assert.NotNull(warningRecord);
+        Assert.NotNull(pluginDescriptor);
+        Assert.NotNull(pluginManager);
+        Assert.NotNull(persistenceManager);
+        Assert.NotNull(repository);
+        Assert.NotNull(snapshot);
+        Assert.NotNull(saveOptions);
+        Assert.NotNull(loadOptions);
+        Assert.NotNull(deleteOptions);
+        Assert.NotNull(serializer);
+        Assert.NotNull(registry);
+        Assert.NotNull(serializationContext);
+        Assert.NotNull(serviceCollection);
+        Assert.NotNull(serviceProvider);
+        Assert.NotNull(eventBus);
+        Assert.NotNull(eventDispatcher);
+        Assert.NotNull(eventContext);
+        Assert.NotNull(eventSubscription);
+        Assert.NotNull(simulationContext);
+        Assert.NotNull(simulationEngine);
+        Assert.NotNull(simulationResult);
+        Assert.NotNull(runtimeContext);
+        Assert.NotNull(runtimeEngine);
+        Assert.NotNull(runtimeResult);
+        Assert.NotNull(exportRequest);
+        Assert.NotNull(exportArtifact);
+        Assert.NotNull(exportManager);
+    }
+
+    private sealed class TestValidationRule : ValidationRuleBase
+    {
+        public override ValidationResult Validate(object target, ValidationContext context)
+            => CreateSuccess();
+    }
+
+    private sealed class TestSerializer : ISerializer
+    {
+        public SerializationFormat Format => SerializationFormat.Json;
+
+        public string Serialize(object value) => string.Empty;
+
+        public object Deserialize(string payload, Type type) => new object();
+
+        public bool CanHandle(SerializationFormat format) => format == SerializationFormat.Json;
+    }
+
+    private sealed class TestEventHandler : IEventHandler
+    {
+        public Task HandleAsync(IEvent evt, EventContext context, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+}

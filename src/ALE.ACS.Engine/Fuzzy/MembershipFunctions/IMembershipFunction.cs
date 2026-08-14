@@ -16,4 +16,10 @@ public interface IMembershipFunction
     /// <param name="x">Valor de entrada.</param>
     /// <returns>Valor entre 0.0 e 1.0.</returns>
     double Evaluate(double x);
+
+    /// <summary>
+    /// Retorna os limites do suporte da função, isto é, onde o grau de pertinência é maior que zero.
+    /// </summary>
+    /// <returns>Tupla com os limites inferior e superior do suporte.</returns>
+    (double Min, double Max) GetSupportBounds();
 }

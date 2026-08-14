@@ -6,13 +6,37 @@ namespace ALE.ACS.Presentation.Services.Documents;
 /// <summary>
 /// Implementação simples do serviço de documentos para a workspace.
 /// </summary>
-public sealed class DocumentService : IDocumentService
+public sealed class DocumentService : IDocumentService, IDocumentManager
 {
-    private readonly List<EngineeringDocument> _documents = [];
+    private readonly ObservableCollection<EngineeringDocument> _documents = [];
 
     public IReadOnlyList<EngineeringDocument> Documents => _documents;
 
+    public ObservableCollection<EngineeringDocument> OpenDocuments => _documents;
+
     public EngineeringDocument? ActiveDocument { get; private set; }
+
+    public void OpenDocument(ControllerDocument controller)
+    {
+        ArgumentNullException.ThrowIfNull(controller);
+
+        var existingDocument = _documents.FirstOrDefault(document => document.Id == controller.Id.ToString("N"));
+
+        if (existingDocument is not null)
+        {
+            SetActiveDocument(existingDocument.Id);
+            return;
+        }
+
+        var document = new EngineeringDocument(
+            controller.Id.ToString("N"),
+            controller.Name,
+            $"{controller.Type} design workspace",
+            controller.Type);
+
+        _documents.Add(document);
+        SetActiveDocument(document.Id);
+    }
 
     public void OpenDocument(string title, string content, string kind = "Document")
     {
@@ -52,5 +76,10 @@ public sealed class DocumentService : IDocumentService
         {
             ActiveDocument = _documents.LastOrDefault();
         }
+    }
+
+    public void CloseDocument(Guid id)
+    {
+        CloseDocument(id.ToString("N"));
     }
 }

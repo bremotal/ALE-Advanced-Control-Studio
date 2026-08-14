@@ -1,17 +1,24 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
+﻿using ALE.ACS.Application.EventBus;
 using ALE.ACS.Application.Interfaces;
+using ALE.ACS.Domain.Models;
 using ALE.ACS.Domain.Projects;
 using ALE.ACS.Presentation.Engineering.Base;
+using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Models.Output;
 using ALE.ACS.Presentation.Services.Dialogs;
+using ALE.ACS.Presentation.Services.Documents;
 using ALE.ACS.Presentation.Services.Navigation;
 using ALE.ACS.Presentation.Services.Session;
 using ALE.ACS.Presentation.Shell.Dialogs.Projects;
 using ALE.ACS.Presentation.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
 
 namespace ALE.ACS.Presentation.ViewModels;
 
@@ -21,6 +28,8 @@ namespace ALE.ACS.Presentation.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IDialogService _dialogService;
+    private readonly IEventBus _eventBus;
+    private readonly IDocumentManager _documentManager;
     private readonly INavigationService _navigationService;
     private readonly IProjectService _projectService;
     private readonly IProjectSession _projectSession;
@@ -31,6 +40,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isApplyingProperties;
 
     private const string DefaultWindowTitle = "ALE Advanced Control Studio";
+
+    [ObservableProperty]
+    private ALE.ACS.Presentation.Models.TreeNode? _selectedNode;
 
     [ObservableProperty]
     private Project? currentProject;
@@ -64,6 +76,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<string> RecentProjects { get; } = [];
 
     public ObservableCollection<OutputLogEntry> OutputEntries { get; } = [];
+
+    public string OutputText =>
+    string.Join(
+        Environment.NewLine,
+        OutputEntries.Select(entry =>
+            $"{entry.Timestamp:HH:mm:ss} | {entry.Level} | {entry.Message}"));
 
     /// <summary>
     /// Título exibido na janela principal.
@@ -111,11 +129,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(
         IDialogService dialogService,
+        IEventBus eventBus,
+        IDocumentManager documentManager,
         IProjectService projectService,
         IProjectSession projectSession,
         WorkspaceViewModel workspaceViewModel)
     {
         _dialogService = dialogService;
+        _eventBus = eventBus;
+        _documentManager = documentManager;
         _navigationService = NavigationService.Current;
         _projectService = projectService;
         _projectSession = projectSession;
@@ -171,7 +193,9 @@ public partial class MainWindowViewModel : ViewModelBase
         var dialog = _dialogService.ShowDialog<NewProjectDialog>();
 
         if (dialog.DialogResult != true)
+        {
             return;
+        }
 
         var projectName = dialog.ViewModel.ProjectName;
 
@@ -179,11 +203,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (!result.IsSuccess || result.Value is null)
         {
-            System.Windows.MessageBox.Show(
+            MessageBox.Show(
                 result.Error!,
                 "ALE ACS",
-                System.Windows.MessageBoxButton.OK,
-                System.Windows.MessageBoxImage.Warning);
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
 
             LogError(result.Error ?? "Unable to create project.");
             return;
@@ -192,28 +216,27 @@ public partial class MainWindowViewModel : ViewModelBase
         var createdProject = result.Value;
 
         CurrentProject = createdProject;
+        _eventBus.Publish(new ProjectCreatedEvent(createdProject.Name));
         AddRecentProject(createdProject.FileName ?? $"{createdProject.Name}.aleacs");
     }
 
     [RelayCommand]
     private void OpenProject()
     {
-        var name = $"Opened Project {DateTime.Now:HHmmss}";
-        var result = _projectService.Create(name);
-
-        if (!result.IsSuccess || result.Value is null)
+        var dialog = new OpenFileDialog
         {
-            LogError(result.Error ?? "Unable to open project.");
+            Title = "Abrir projeto ALE ACS",
+            Filter = "Projeto ALE ACS (*.aleacs)|*.aleacs|Todos os arquivos (*.*)|*.*",
+            DefaultExt = ".aleacs",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
             return;
         }
 
-        var openedProject = result.Value;
-
-        openedProject.SetFileName($"C:/Projects/{name}.aleacs");
-        openedProject.MarkAsSaved();
-        CurrentProject = openedProject;
-        AddRecentProject(openedProject.FileName!);
-        LogInfo($"Project opened: {name}");
+        OpenProjectFile(dialog.FileName);
     }
 
     [RelayCommand]
@@ -227,14 +250,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(CurrentProject.FileName))
         {
-            CurrentProject.SetFileName($"C:/Projects/{CurrentProject.Name}.aleacs");
+            SaveProjectAs();
+            return;
         }
 
-        CurrentProject.MarkAsSaved();
-        AddRecentProject(CurrentProject.FileName!);
-        OnPropertyChanged(nameof(PropertiesContent));
-        OnPropertyChanged(nameof(StateStatus));
-        LogInfo($"Project saved: {CurrentProject.Name}");
+        SaveProjectFile(CurrentProject.FileName);
     }
 
     [RelayCommand]
@@ -246,13 +266,23 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var fileName = $"C:/Projects/{CurrentProject.Name}_{DateTime.Now:yyyyMMdd_HHmmss}.aleacs";
-        CurrentProject.SetFileName(fileName);
-        CurrentProject.MarkAsSaved();
-        AddRecentProject(fileName);
-        OnPropertyChanged(nameof(PropertiesContent));
-        OnPropertyChanged(nameof(StateStatus));
-        LogInfo($"Project saved as: {fileName}");
+        var dialog = new SaveFileDialog
+        {
+            Title = "Salvar projeto ALE ACS",
+            Filter = "Projeto ALE ACS (*.aleacs)|*.aleacs|Todos os arquivos (*.*)|*.*",
+            DefaultExt = ".aleacs",
+            AddExtension = true,
+            FileName = $"{CurrentProject.Name}.aleacs",
+            InitialDirectory = Environment.GetFolderPath(
+                Environment.SpecialFolder.MyDocuments)
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        SaveProjectFile(dialog.FileName);
     }
 
     [RelayCommand]
@@ -261,9 +291,85 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentProject = null;
         _undoStack.Clear();
         _redoStack.Clear();
+
+        // LIMPA AS ABAS DO WORKSPACE
+        _documentManager.OpenDocuments.Clear();
+
+        // AVISA A ÁRVORE PARA LIMPAR
+        _eventBus.Publish(new ProjectClosedEvent());
+
         ApplyPropertiesCommand.NotifyCanExecuteChanged();
         UndoCommand.NotifyCanExecuteChanged();
         RedoCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private void NewModel()
+    {
+        if (SelectedNode is null ||
+            SelectedNode.Name != "Models")
+        {
+            return;
+        }
+
+        var modelName = $"Modelo_{DateTime.Now:HHmmss}";
+
+        var controlModel = new ControlModel
+        {
+            Name = modelName,
+            Description = string.Empty
+        };
+
+        var doc = new ALE.ACS.Presentation.Models.EngineeringDocument(
+            Guid.NewGuid().ToString("N"),
+            modelName,
+            "",
+            "Model")
+        {
+            IsDirty = false,
+            ControlModel = controlModel
+        };
+
+        _documentManager.OpenDocuments.Add(doc);
+
+        _eventBus.Publish(
+            new ModelCreatedEvent(modelName));
+
+        _workspaceViewModel.RefreshDocuments();
+
+        _navigationService.ActivateDocument(doc.Id);
+
+        LogInfo($"Model created: {modelName}");
+    }
+    [RelayCommand]
+    private void NewControllerFromTree()
+    {
+        if (SelectedNode is null || SelectedNode.Name != "Controllers") return;
+
+        var controllerName = $"Controller_{DateTime.Now:HHmmss}";
+
+        // Adiciona na árvore
+        SelectedNode.Children.Add(new ALE.ACS.Presentation.Models.TreeNode
+        {
+            Name = controllerName,
+            Type = ALE.ACS.Presentation.Models.ProjectItemType.Controller
+        });
+        SelectedNode.IsExpanded = true;
+
+        // Abre no Workspace usando o namespace completo para evitar ambiguidade
+        var doc = new ALE.ACS.Presentation.Models.EngineeringDocument(
+            Guid.NewGuid().ToString(),
+            controllerName,
+            "",
+            "Controller")
+        {
+            IsDirty = false
+        };
+
+        _documentManager.OpenDocuments.Add(doc);
+        _workspaceViewModel.RefreshDocuments();
+
+        LogInfo($"Controller created: {controllerName}");
     }
 
     [RelayCommand]
@@ -282,22 +388,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var name = Path.GetFileNameWithoutExtension(projectPath);
-        var result = _projectService.Create(name);
-
-        if (!result.IsSuccess || result.Value is null)
-        {
-            LogError(result.Error ?? "Unable to open recent project.");
-            return;
-        }
-
-        var recentProject = result.Value;
-
-        recentProject.SetFileName(projectPath);
-        recentProject.MarkAsSaved();
-        CurrentProject = recentProject;
-        AddRecentProject(projectPath);
-        LogInfo($"Recent project opened: {projectPath}");
+        OpenProjectFile(projectPath);
     }
 
     [RelayCommand]
@@ -354,13 +445,14 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var document = new EngineeringDocument(activeDocument.Title, activeDocument.Content)
+        var document = new ALE.ACS.Presentation.Engineering.Base.EngineeringDocument(
+            activeDocument.Title,
+            activeDocument.Content)
         {
             IsDirty = activeDocument.IsDirty
         };
 
-        var results = _engineeringValidationService.Validate(document);
-        var isValid = results.Count == 0;
+        var results = _engineeringValidationService.Validate(document); var isValid = results.Count == 0;
         var message = isValid ? "Document is valid." : string.Join("; ", results);
 
         _navigationService.NotifyValidation("Validation", isValid, message);
@@ -379,7 +471,9 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var simulation = new EngineeringSimulationService();
-        var message = simulation.CreateSimulationDraft(new EngineeringDocument(activeDocument.Title, activeDocument.Content));
+        var message = simulation.CreateSimulationDraft(new ALE.ACS.Presentation.Engineering.Base.EngineeringDocument(
+            activeDocument.Title,
+            activeDocument.Content));
         LogInfo($"Simulation: {message}");
     }
 
@@ -388,11 +482,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         LogInfo("Options requested. Feature pending full implementation.");
 
-        System.Windows.MessageBox.Show(
+        MessageBox.Show(
             "Options will be available in a future release.",
             "ALE ACS - Options",
-            System.Windows.MessageBoxButton.OK,
-            System.Windows.MessageBoxImage.Information);
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     [RelayCommand]
@@ -435,11 +529,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         LogInfo("About dialog opened.");
 
-        System.Windows.MessageBox.Show(
+        MessageBox.Show(
             "ALE Advanced Control Studio\nRelease 0.3.1\nEngineering IDE Framework",
             "About ALE ACS",
-            System.Windows.MessageBoxButton.OK,
-            System.Windows.MessageBoxImage.Information);
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     [RelayCommand]
@@ -488,7 +582,12 @@ public partial class MainWindowViewModel : ViewModelBase
         var activeDocument = _navigationService.ActiveDocument;
 
         if (activeDocument is null)
+        {
             return;
+        }
+
+        var previousTitle = activeDocument.Title;
+        var previousKind = activeDocument.Kind;
 
         _undoStack.Push((activeDocument.Title, activeDocument.Kind, activeDocument.Content));
         _redoStack.Clear();
@@ -499,13 +598,23 @@ public partial class MainWindowViewModel : ViewModelBase
         activeDocument.Content = SelectedDescription;
         _isApplyingProperties = false;
 
-        var validationDocument = new EngineeringDocument(SelectedName, SelectedDescription)
+        if (string.Equals(previousKind, "Controller", StringComparison.Ordinal) &&
+            !string.Equals(previousTitle, activeDocument.Title, StringComparison.Ordinal))
+        {
+            _eventBus.Publish(
+                new ControllerRenamedEvent(
+                    previousTitle,
+                    activeDocument.Title));
+        }
+
+        var validationDocument = new ALE.ACS.Presentation.Engineering.Base.EngineeringDocument(
+            SelectedName,
+            SelectedDescription)
         {
             IsDirty = activeDocument.IsDirty
         };
 
-        var validationMessages = _engineeringValidationService.Validate(validationDocument);
-        var isValid = validationMessages.Count == 0;
+        var validationMessages = _engineeringValidationService.Validate(validationDocument); var isValid = validationMessages.Count == 0;
         var validationMessage = isValid
             ? "Document properties are valid."
             : string.Join("; ", validationMessages);
@@ -524,7 +633,9 @@ public partial class MainWindowViewModel : ViewModelBase
         var activeDocument = _navigationService.ActiveDocument;
 
         if (activeDocument is null || _undoStack.Count == 0)
+        {
             return;
+        }
 
         _redoStack.Push((activeDocument.Title, activeDocument.Kind, activeDocument.Content));
         var previous = _undoStack.Pop();
@@ -548,7 +659,9 @@ public partial class MainWindowViewModel : ViewModelBase
         var activeDocument = _navigationService.ActiveDocument;
 
         if (activeDocument is null || _redoStack.Count == 0)
+        {
             return;
+        }
 
         _undoStack.Push((activeDocument.Title, activeDocument.Kind, activeDocument.Content));
         var next = _redoStack.Pop();
@@ -584,7 +697,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private void SyncEditablePropertiesFromActiveDocument()
     {
         if (_isApplyingProperties)
+        {
             return;
+        }
 
         var activeDocument = _navigationService.ActiveDocument;
 
@@ -630,9 +745,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private void AddLog(OutputLogLevel level, string message)
     {
         if (string.IsNullOrWhiteSpace(message))
+        {
             return;
+        }
 
         OutputEntries.Add(new OutputLogEntry(level, message));
+        OnPropertyChanged(nameof(OutputText));
     }
 
     [RelayCommand]
@@ -651,13 +769,190 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OpenController(string controllerName)
     {
-        _navigationService.SelectNode(new Models.TreeNode
+        var doc = new ALE.ACS.Presentation.Models.EngineeringDocument(
+            Guid.NewGuid().ToString(),
+            controllerName,
+            "",
+            "Controller")
+        {
+            IsDirty = false
+        };
+
+        _documentManager.OpenDocuments.Add(doc);
+        _workspaceViewModel.RefreshDocuments();
+
+        _eventBus.Publish(new ControllerCreatedEvent(controllerName));
+
+        _navigationService.SelectNode(new ALE.ACS.Presentation.Models.TreeNode
         {
             Name = controllerName,
-            Type = Models.ProjectItemType.Controller
+            Type = ALE.ACS.Presentation.Models.ProjectItemType.Controller
         });
 
         LogInfo($"Controller created/opened: {controllerName}");
         LogInfo("Explorer refresh requested through navigation state update.");
     }
+
+    private void SaveProjectFile(string filePath)
+    {
+        if (CurrentProject is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var documents = new List<ProjectDocumentFile>();
+
+            foreach (var document in _documentManager.OpenDocuments)
+            {
+                LogInfo(
+                    $"SAVE DEBUG: {document.Title} | {document.Kind} | ControlModel={(document.ControlModel is null ? "NULL" : "OK")}");
+
+                documents.Add(new ProjectDocumentFile(
+                    document.Id,
+                    document.Title,
+                    document.Content,
+                    document.Kind,
+                    DateTime.Now,
+                    document.ControlModel));
+            }
+
+            var projectFile = new ProjectFile(
+                CurrentProject.Name,
+                _navigationService.ActiveDocument?.Id,
+                documents);
+
+            var json = JsonSerializer.Serialize(
+                projectFile,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+            File.WriteAllText(filePath, json);
+
+            CurrentProject.SetFileName(filePath);
+            CurrentProject.MarkAsSaved();
+
+            foreach (var document in _documentManager.OpenDocuments)
+            {
+                document.IsDirty = false;
+            }
+
+            AddRecentProject(filePath);
+            OnPropertyChanged(nameof(PropertiesContent));
+            OnPropertyChanged(nameof(StateStatus));
+
+            LogInfo($"Project saved: {filePath}");
+        }
+        catch (Exception exception)
+        {
+            LogError($"Unable to save project: {exception.Message}");
+
+            MessageBox.Show(
+                exception.Message,
+                "ALE ACS - Save error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private void OpenProjectFile(string filePath)
+    {
+        try
+        {
+            var json = File.ReadAllText(filePath);
+
+            var projectFile = JsonSerializer.Deserialize<ProjectFile>(json);
+
+            if (projectFile is null ||
+                string.IsNullOrWhiteSpace(projectFile.Name))
+            {
+                throw new InvalidOperationException(
+                    "The selected file is not a valid ALE ACS project.");
+            }
+
+            var result = _projectService.Create(projectFile.Name);
+
+            if (!result.IsSuccess || result.Value is null)
+            {
+                throw new InvalidOperationException(
+                    result.Error ?? "Unable to create project from file.");
+            }
+
+            var loadedProject = result.Value;
+
+            loadedProject.SetFileName(filePath);
+            loadedProject.MarkAsSaved();
+
+            CurrentProject = loadedProject;
+            _eventBus.Publish(new ProjectCreatedEvent(loadedProject.Name));
+
+            _documentManager.OpenDocuments.Clear();
+
+            foreach (var savedDocument in projectFile.Documents)
+            {
+                var document = new ALE.ACS.Presentation.Models.EngineeringDocument(
+                    savedDocument.Id,
+                    savedDocument.Title,
+                    savedDocument.Content,
+                    savedDocument.Kind)
+                {
+                    IsDirty = false,
+                    ControlModel = savedDocument.ControlModel
+                };
+
+                _documentManager.OpenDocuments.Add(document);
+            }
+
+            if (!string.IsNullOrWhiteSpace(projectFile.ActiveDocumentId))
+            {
+                _navigationService.ActivateDocument(projectFile.ActiveDocumentId);
+            }
+
+            _workspaceViewModel.RefreshDocuments();
+            AddRecentProject(filePath);
+
+            // AVISA O EXPLORER PARA RECONSTRUIR A ÁRVORE COM OS DOCUMENTOS CARREGADOS
+            foreach (var doc in _documentManager.OpenDocuments)
+            {
+                if (doc.Kind == "Controller")
+                {
+                    _eventBus.Publish(
+                        new ControllerCreatedEvent(doc.Title));
+                }
+                else if (doc.Kind == "Model")
+                {
+                    _eventBus.Publish(
+                        new ModelCreatedEvent(doc.Title));
+                }
+            }
+
+            LogInfo($"Project opened: {filePath}");
+        }
+        catch (Exception exception)
+        {
+            LogError($"Unable to open project: {exception.Message}");
+
+            MessageBox.Show(
+                exception.Message,
+                "ALE ACS - Open error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private sealed record ProjectFile(
+        string Name,
+        string? ActiveDocumentId,
+        List<ProjectDocumentFile> Documents);
+
+    private sealed record ProjectDocumentFile(
+        string Id,
+        string Title,
+        string Content,
+        string Kind,
+        DateTime LastModified,
+        ControlModel? ControlModel);
 }

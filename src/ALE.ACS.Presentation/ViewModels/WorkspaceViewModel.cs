@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Services.Documents;
@@ -53,10 +54,14 @@ public partial class WorkspaceViewModel : ViewModelBase
     partial void OnActiveDocumentChanged(EngineeringDocument? value)
     {
         if (_isSyncingNavigation)
+        {
             return;
+        }
 
         if (value is null)
+        {
             return;
+        }
 
         _navigationService.ActivateDocument(value.Id);
 
@@ -83,7 +88,9 @@ public partial class WorkspaceViewModel : ViewModelBase
     private void CloseActiveDocument()
     {
         if (ActiveDocument is null)
+        {
             return;
+        }
 
         var closedTitle = ActiveDocument.Title;
 
@@ -97,7 +104,9 @@ public partial class WorkspaceViewModel : ViewModelBase
     private void CloseDocument(EngineeringDocument? document)
     {
         if (document is null)
+        {
             return;
+        }
 
         _documentService.CloseDocument(document.Id);
         _navigationService.NotifyDocumentClosed(document.Title);
@@ -108,7 +117,9 @@ public partial class WorkspaceViewModel : ViewModelBase
     public void RefreshDocuments()
     {
         if (_isRefreshing)
+        {
             return;
+        }
 
         _isRefreshing = true;
 
@@ -127,7 +138,8 @@ public partial class WorkspaceViewModel : ViewModelBase
                 _navigationService.ActiveDocument
                 ?? _documentService.ActiveDocument;
 
-            ActiveEngineeringEditorViewModel = _navigationService.ActiveEditorViewModel;
+            ActiveEngineeringEditorViewModel =
+                _navigationService.ActiveEditorViewModel;
 
             _isSyncingNavigation = false;
 
@@ -146,12 +158,68 @@ public partial class WorkspaceViewModel : ViewModelBase
         ALE.ACS.Domain.Projects.Project? project)
     {
         OnPropertyChanged(nameof(WorkspaceTitle));
+
+        if (project is null)
+        {
+            RefreshDocuments();
+            return;
+        }
+
+        EngineeringDocument? projectDocument = null;
+
+        foreach (var document in _documentService.Documents)
+        {
+            if (document.Kind == "Project" &&
+                document.Title == project.Name)
+            {
+                projectDocument = document;
+                break;
+            }
+        }
+
+        if (projectDocument is null)
+        {
+            _documentService.OpenDocument(
+                project.Name,
+                $"Engineering workspace document for {project.Name} (Project).",
+                "Project");
+        }
+
+        var placeholderDocuments = new List<EngineeringDocument>();
+
+        foreach (var document in _documentService.Documents)
+        {
+            if (document.Kind == "Project" &&
+                document.Title == "No Project")
+            {
+                placeholderDocuments.Add(document);
+            }
+        }
+
+        foreach (var placeholderDocument in placeholderDocuments)
+        {
+            _documentService.CloseDocument(placeholderDocument.Id);
+        }
+
+        RefreshDocuments();
+
+        foreach (var document in Documents)
+        {
+            if (document.Kind == "Project" &&
+                document.Title == project.Name)
+            {
+                ActiveDocument = document;
+                break;
+            }
+        }
     }
 
     private void OnNavigationChanged(object? sender, EventArgs e)
     {
         if (_isRefreshing)
+        {
             return;
+        }
 
         _isSyncingNavigation = true;
 
@@ -159,7 +227,8 @@ public partial class WorkspaceViewModel : ViewModelBase
             _navigationService.ActiveDocument
             ?? _documentService.ActiveDocument;
 
-        ActiveEngineeringEditorViewModel = _navigationService.ActiveEditorViewModel;
+        ActiveEngineeringEditorViewModel =
+            _navigationService.ActiveEditorViewModel;
 
         _isSyncingNavigation = false;
 

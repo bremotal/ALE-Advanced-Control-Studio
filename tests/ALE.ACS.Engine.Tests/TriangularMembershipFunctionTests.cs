@@ -72,6 +72,16 @@ public sealed class TriangularMembershipFunctionTests
         Assert.Equal(0.0, result, 6);
     }
 
+    [Fact]
+    public void GetSupportBounds_Should_Return_The_Base_Interval()
+    {
+        var function = CreateDefault();
+
+        var supportBounds = function.GetSupportBounds();
+
+        Assert.Equal((0.0, 10.0), supportBounds);
+    }
+
     [Theory]
     [InlineData(0.0, 0.0, 1.0)]
     [InlineData(0.0, 1.0, 1.0)]

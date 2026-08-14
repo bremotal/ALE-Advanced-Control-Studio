@@ -1,13 +1,19 @@
+using ALE.ACS.Domain.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ALE.ACS.Presentation.Models;
 
 /// <summary>
-/// Documento genérico utilizado pela área de trabalho da IDE.
+/// Documento utilizado pela área de trabalho da IDE.
+/// Pode representar diferentes tipos de artefatos de engenharia.
 /// </summary>
 public sealed partial class EngineeringDocument : ObservableObject
 {
-    public EngineeringDocument(string id, string title, string content, string kind)
+    public EngineeringDocument(
+        string id,
+        string title,
+        string content,
+        string kind)
     {
         Id = id;
         Title = title;
@@ -33,6 +39,11 @@ public sealed partial class EngineeringDocument : ObservableObject
     [ObservableProperty]
     private DateTime lastModified;
 
+    /// <summary>
+    /// Modelo de engenharia associado ao documento quando o documento representa um Model.
+    /// </summary>
+    public ControlModel? ControlModel { get; set; }
+
     partial void OnTitleChanged(string value)
     {
         MarkDirty();
@@ -46,7 +57,9 @@ public sealed partial class EngineeringDocument : ObservableObject
     private void MarkDirty()
     {
         if (IsDirty)
+        {
             return;
+        }
 
         IsDirty = true;
         LastModified = DateTime.Now;

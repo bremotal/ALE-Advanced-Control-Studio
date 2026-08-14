@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
-using ALE.ACS.Domain.Projects;
 using ALE.ACS.Presentation.Models;
+using ALE.ACS.Presentation.Services.Documents;
 using ALE.ACS.Presentation.Services.Explorer;
 using ALE.ACS.Presentation.Services.Navigation;
-using ALE.ACS.Presentation.Services.Session;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace ALE.ACS.Presentation.ViewModels.Projects;
@@ -11,11 +11,13 @@ namespace ALE.ACS.Presentation.ViewModels.Projects;
 public partial class ProjectExplorerViewModel : ViewModelBase
 {
     private readonly IProjectExplorerService _projectExplorerService;
+    private readonly IDocumentService _documentService;
     private readonly INavigationService _navigationService;
-    private readonly IProjectSession _projectSession;
+
     private TreeNode? _selectedNode;
 
-    public ObservableCollection<TreeNode> ProjectItems { get; }
+    public ObservableCollection<TreeNode> ProjectItems =>
+        _projectExplorerService.ProjectItems;
 
     public TreeNode? SelectedNode
     {
@@ -23,59 +25,102 @@ public partial class ProjectExplorerViewModel : ViewModelBase
         set
         {
             if (ReferenceEquals(_selectedNode, value))
+            {
                 return;
+            }
 
             _selectedNode = value;
+
             _navigationService.SelectNode(value);
+
             OnPropertyChanged();
+            OnPropertyChanged(nameof(CanCreateModel));
+            OnPropertyChanged(nameof(CanCreateController));
         }
     }
+
+    public bool CanCreateModel =>
+        SelectedNode?.Name == "Models";
+
+    public bool CanCreateController =>
+        SelectedNode?.Name == "Controllers";
 
     public ProjectExplorerViewModel(
         IProjectExplorerService projectExplorerService,
-        IProjectSession projectSession)
+        IDocumentService documentService)
     {
         _projectExplorerService = projectExplorerService;
+        _documentService = documentService;
         _navigationService = NavigationService.Current;
-        _projectSession = projectSession;
 
-        ProjectItems = new ObservableCollection<TreeNode>();
-
-        _projectSession.CurrentProjectChanged += OnCurrentProjectChanged;
-
-        RefreshProjectItems();
+        SelectedNode = ProjectItems.FirstOrDefault();
     }
 
-    private void OnCurrentProjectChanged(object? sender, Project? project)
+    [RelayCommand]
+    private void NewModel()
     {
-        RefreshProjectItems();
-    }
-
-    private void RefreshProjectItems()
-    {
-        ProjectItems.Clear();
-
-        var projectNodes = _projectExplorerService.LoadProjectTree();
-        var rootNode = projectNodes.FirstOrDefault();
-
-        if (rootNode is null)
-            return;
-
-        rootNode.Name = _projectSession.CurrentProject?.Name ?? "ALE Demo Project";
-
-        foreach (var item in projectNodes)
+        if (!CanCreateModel)
         {
-            ProjectItems.Add(item);
+            return;
         }
 
-        SelectedNode = rootNode;
+        var modelName = $"Modelo_{DateTime.Now:HHmmss}";
+
+        _projectExplorerService.AddModel(modelName);
+
+        _documentService.OpenDocument(
+            modelName,
+            string.Empty,
+            "Model");
+
+        _navigationService.SelectNode(
+            new TreeNode
+            {
+                Name = modelName,
+                Type = ProjectItemType.Model
+            });
+
+        LogInfo($"Model created: {modelName}");
+
+        OnPropertyChanged(nameof(ProjectItems));
+    }
+
+    [RelayCommand]
+    private void NewController()
+    {
+        if (!CanCreateController)
+        {
+            return;
+        }
+
+        var controllerName = $"Controller_{DateTime.Now:HHmmss}";
+
+        _projectExplorerService.AddController(controllerName);
+
+        _documentService.OpenDocument(
+            controllerName,
+            string.Empty,
+            "Controller");
+
+        _navigationService.SelectNode(
+            new TreeNode
+            {
+                Name = controllerName,
+                Type = ProjectItemType.Controller
+            });
+
+        LogInfo($"Controller created: {controllerName}");
+
+        OnPropertyChanged(nameof(ProjectItems));
     }
 
     [RelayCommand]
     private void OpenSelectedNode()
     {
         if (SelectedNode is null)
+        {
             return;
+        }
 
         _navigationService.SelectNode(SelectedNode);
     }
@@ -84,10 +129,14 @@ public partial class ProjectExplorerViewModel : ViewModelBase
     private void RenameSelectedNode()
     {
         if (SelectedNode is null)
+        {
             return;
+        }
 
         SelectedNode.Name = $"{SelectedNode.Name} (Renamed)";
+
         _navigationService.SelectNode(SelectedNode);
+
         OnPropertyChanged(nameof(ProjectItems));
     }
 
@@ -95,9 +144,12 @@ public partial class ProjectExplorerViewModel : ViewModelBase
     private void ExpandSelectedNode()
     {
         if (SelectedNode is null)
+        {
             return;
+        }
 
         SetExpanded(SelectedNode, true);
+
         OnPropertyChanged(nameof(ProjectItems));
     }
 
@@ -105,13 +157,18 @@ public partial class ProjectExplorerViewModel : ViewModelBase
     private void CollapseSelectedNode()
     {
         if (SelectedNode is null)
+        {
             return;
+        }
 
         SetExpanded(SelectedNode, false);
+
         OnPropertyChanged(nameof(ProjectItems));
     }
 
-    private static void SetExpanded(TreeNode node, bool isExpanded)
+    private static void SetExpanded(
+        TreeNode node,
+        bool isExpanded)
     {
         node.IsExpanded = isExpanded;
 
@@ -119,5 +176,11 @@ public partial class ProjectExplorerViewModel : ViewModelBase
         {
             SetExpanded(child, isExpanded);
         }
+    }
+
+    private void LogInfo(string message)
+    {
+        // Mantém o Explorer independente do Output da MainWindow.
+        System.Diagnostics.Debug.WriteLine(message);
     }
 }

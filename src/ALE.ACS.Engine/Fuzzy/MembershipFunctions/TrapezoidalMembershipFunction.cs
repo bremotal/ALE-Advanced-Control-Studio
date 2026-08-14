@@ -59,4 +59,9 @@ public sealed class TrapezoidalMembershipFunction : MembershipFunctionBase
 
         return (_d - x) / (_d - _c);
     }
+
+    public override (double Min, double Max) GetSupportBounds()
+    {
+        return (_a, _d);
+    }
 }

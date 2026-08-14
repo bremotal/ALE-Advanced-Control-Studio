@@ -1,89 +1,173 @@
+using System.Collections.ObjectModel;
+using ALE.ACS.Application.EventBus;
 using ALE.ACS.Presentation.Models;
 
 namespace ALE.ACS.Presentation.Services.Explorer;
 
 public sealed class ProjectExplorerService : IProjectExplorerService
 {
-    public IReadOnlyList<TreeNode> LoadProjectTree()
-    {
-        return
-        [
-            new TreeNode
-            {
-                Name = "ALE Demo Project",
-                Type = ProjectItemType.Project,
-                IsExpanded = true,
+    private readonly TreeNode _projectRoot;
+    private readonly TreeNode _controllersNode;
+    private readonly TreeNode _modelsNode;
 
-                Children =
-                {
-                    CreateControllers(),
-                    CreateModels(),
-                    CreateIO(),
-                    CreateFolder("Tags", ProjectItemType.Tag),
-                    CreateFolder("Scripts", ProjectItemType.Script),
-                    CreateFolder("Trends", ProjectItemType.Trend),
-                    CreateFolder("Historian", ProjectItemType.Historian),
-                    CreateFolder("Reports", ProjectItemType.Report)
-                }
-            }
-        ];
-    }
-
-    private static TreeNode CreateControllers()
+    public ProjectExplorerService(IEventBus eventBus)
     {
-        return new TreeNode
+        ArgumentNullException.ThrowIfNull(eventBus);
+
+        _controllersNode = new TreeNode
         {
             Name = "Controllers",
             Type = ProjectItemType.Folder,
-            IsExpanded = true,
-
-            Children =
-            {
-                new TreeNode { Name = "Fuzzy Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "MPC Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "Adaptive Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "Neural Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "Identification Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "Optimization Controller", Type = ProjectItemType.Controller },
-                new TreeNode { Name = "PID Controller", Type = ProjectItemType.Controller }
-            }
+            IsExpanded = true
         };
-    }
 
-    private static TreeNode CreateModels()
-    {
-        return new TreeNode
+        _modelsNode = new TreeNode
         {
             Name = "Models",
-
             Type = ProjectItemType.Folder,
-
-            Children =
-            {
-                new TreeNode { Name = "Distillation", Type = ProjectItemType.Model },
-                new TreeNode { Name = "Evaporator", Type = ProjectItemType.Model },
-                new TreeNode { Name = "Boiler", Type = ProjectItemType.Model }
-            }
+            IsExpanded = true
         };
-    }
 
-    private static TreeNode CreateIO()
-    {
-        return new TreeNode
+        _projectRoot = new TreeNode
         {
-            Name = "IO",
-
-            Type = ProjectItemType.IO,
-
+            Name = "No Project",
+            Type = ProjectItemType.Project,
+            IsExpanded = true,
             Children =
             {
-                new TreeNode { Name = "Inputs", Type = ProjectItemType.IO },
-                new TreeNode { Name = "Outputs", Type = ProjectItemType.IO }
+                _controllersNode,
+                _modelsNode,
+                CreateFolder("IO", ProjectItemType.IO),
+                CreateFolder("Tags", ProjectItemType.Tag),
+                CreateFolder("Scripts", ProjectItemType.Script),
+                CreateFolder("Trends", ProjectItemType.Trend),
+                CreateFolder("Historian", ProjectItemType.Historian),
+                CreateFolder("Reports", ProjectItemType.Report)
             }
         };
+
+        ProjectItems = [_projectRoot];
+
+        eventBus.Subscribe<ProjectCreatedEvent>(OnProjectCreated);
+        eventBus.Subscribe<ProjectClosedEvent>(OnProjectClosed);
+
+        eventBus.Subscribe<ControllerCreatedEvent>(OnControllerCreated);
+        eventBus.Subscribe<ControllerRenamedEvent>(OnControllerRenamed);
+
+        eventBus.Subscribe<ModelCreatedEvent>(OnModelCreated);
     }
 
-    private static TreeNode CreateFolder(string name, ProjectItemType type)
+    public ObservableCollection<TreeNode> ProjectItems { get; }
+
+    private void OnProjectCreated(ProjectCreatedEvent projectEvent)
+    {
+        if (projectEvent is null)
+        {
+            return;
+        }
+
+        _projectRoot.Name = projectEvent.ProjectName;
+
+        _controllersNode.Children.Clear();
+        _modelsNode.Children.Clear();
+    }
+
+    private void OnProjectClosed(ProjectClosedEvent projectEvent)
+    {
+        _projectRoot.Name = "No Project";
+
+        _controllersNode.Children.Clear();
+        _modelsNode.Children.Clear();
+    }
+
+    private void OnControllerCreated(ControllerCreatedEvent controllerEvent)
+    {
+        if (controllerEvent is null)
+        {
+            return;
+        }
+
+        if (_controllersNode.Children.Any(
+                item => string.Equals(
+                    item.Name,
+                    controllerEvent.ControllerName,
+                    StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        _controllersNode.Children.Add(new TreeNode
+        {
+            Name = controllerEvent.ControllerName,
+            Type = ProjectItemType.Controller
+        });
+
+        _controllersNode.IsExpanded = true;
+    }
+
+    private void OnControllerRenamed(ControllerRenamedEvent controllerEvent)
+    {
+        if (controllerEvent is null ||
+            string.IsNullOrWhiteSpace(controllerEvent.PreviousName) ||
+            string.IsNullOrWhiteSpace(controllerEvent.ControllerName))
+        {
+            return;
+        }
+
+        foreach (var controllerNode in _controllersNode.Children)
+        {
+            if (controllerNode.Type == ProjectItemType.Controller &&
+                string.Equals(
+                    controllerNode.Name,
+                    controllerEvent.PreviousName,
+                    StringComparison.Ordinal))
+            {
+                controllerNode.Name = controllerEvent.ControllerName;
+                return;
+            }
+        }
+    }
+
+    private void OnModelCreated(ModelCreatedEvent modelEvent)
+    {
+        if (modelEvent is null ||
+            string.IsNullOrWhiteSpace(modelEvent.ModelName))
+        {
+            return;
+        }
+
+        if (_modelsNode.Children.Any(
+                item => string.Equals(
+                    item.Name,
+                    modelEvent.ModelName,
+                    StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        _modelsNode.Children.Add(new TreeNode
+        {
+            Name = modelEvent.ModelName,
+            Type = ProjectItemType.Model
+        });
+
+        _modelsNode.IsExpanded = true;
+    }
+    public void AddModel(string modelName)
+    {
+        OnModelCreated(
+            new ModelCreatedEvent(modelName));
+    }
+
+    public void AddController(string controllerName)
+    {
+        OnControllerCreated(
+            new ControllerCreatedEvent(controllerName));
+    }
+
+    private static TreeNode CreateFolder(
+        string name,
+        ProjectItemType type)
     {
         return new TreeNode
         {

@@ -14,29 +14,47 @@
         Background="White">
 
         <TreeView ItemsSource="{Binding ProjectItems}"
-                    behaviors:TreeViewSelectionBehavior.SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
-          BorderThickness="0"
-          Background="Transparent"
-          Foreground="Black">
+                  behaviors:TreeViewSelectionBehavior.SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+                  BorderThickness="0"
+                  Background="Transparent"
+                  Foreground="Black">
 
             <TreeView.InputBindings>
                 <MouseBinding Gesture="LeftDoubleClick"
                               Command="{Binding OpenSelectedNodeCommand}" />
             </TreeView.InputBindings>
 
-            <TreeView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Open"
-                              Command="{Binding OpenSelectedNodeCommand}" />
-                    <MenuItem Header="Rename"
-                              Command="{Binding RenameSelectedNodeCommand}" />
-                    <Separator/>
-                    <MenuItem Header="Expand"
-                              Command="{Binding ExpandSelectedNodeCommand}" />
-                    <MenuItem Header="Collapse"
-                              Command="{Binding CollapseSelectedNodeCommand}" />
-                </ContextMenu>
-            </TreeView.ContextMenu>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                    <!-- O Tag de cada TreeViewItem aponta para o DataContext (MainWindowViewModel) -->
+                    <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <!-- O PlacementTarget é o TreeViewItem, e o Tag dele contém o ViewModel -->
+                                <MenuItem Header="Novo Modelo"
+                                          Command="{Binding PlacementTarget.Tag.NewModelCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                <MenuItem Header="Novo Controlador"
+                                          Command="{Binding PlacementTarget.Tag.NewControllerCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <Separator/>
+                                <MenuItem Header="Open"
+                                          Command="{Binding PlacementTarget.Tag.OpenSelectedNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="Rename"
+                                          Command="{Binding PlacementTarget.Tag.RenameSelectedNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <Separator/>
+                                <MenuItem Header="Expand"
+                                          Command="{Binding PlacementTarget.Tag.ExpandSelectedNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="Collapse"
+                                          Command="{Binding PlacementTarget.Tag.CollapseSelectedNodeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.ItemContainerStyle>
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">

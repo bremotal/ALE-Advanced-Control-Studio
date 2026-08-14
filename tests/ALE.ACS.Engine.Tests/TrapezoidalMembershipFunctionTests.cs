@@ -68,6 +68,16 @@ public class TrapezoidalMembershipFunctionTests
         Assert.Equal(0.0, result, 6);
     }
 
+    [Fact]
+    public void GetSupportBounds_Should_Return_The_Base_Interval()
+    {
+        var function = CreateDefault();
+
+        var supportBounds = function.GetSupportBounds();
+
+        Assert.Equal((0.0, 100.0), supportBounds);
+    }
+
     [Theory]
     [InlineData(10.0, 5.0, 20.0, 30.0)]
     [InlineData(0.0, 20.0, 10.0, 30.0)]

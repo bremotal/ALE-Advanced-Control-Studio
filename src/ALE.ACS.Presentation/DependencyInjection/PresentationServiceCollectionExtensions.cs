@@ -22,7 +22,9 @@ public static class PresentationServiceCollectionExtensions
         // Serviços da Presentation
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IProjectSession, ProjectSession>();
-        services.AddSingleton<IDocumentService, DocumentService>();
+        services.AddSingleton<DocumentService>();
+        services.AddSingleton<IDocumentService>(provider => provider.GetRequiredService<DocumentService>());
+        services.AddSingleton<IDocumentManager>(provider => provider.GetRequiredService<DocumentService>());
         services.AddSingleton<IProjectExplorerService, ProjectExplorerService>();
         services.AddSingleton<ALE.ACS.Presentation.Services.Projects.IProjectService, ALE.ACS.Presentation.Services.Projects.ProjectService>();
 

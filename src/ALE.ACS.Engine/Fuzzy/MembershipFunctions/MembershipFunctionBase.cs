@@ -19,6 +19,11 @@ public abstract class MembershipFunctionBase : IMembershipFunction
 
     public abstract double Evaluate(double x);
 
+    public virtual (double Min, double Max) GetSupportBounds()
+    {
+        return (double.NegativeInfinity, double.PositiveInfinity);
+    }
+
     protected static bool NearlyEqual(double a, double b)
     {
         return Math.Abs(a - b) <= Epsilon;
