@@ -10,7 +10,7 @@ public class ControllerInputTests
         var input = new ControllerInput();
 
         Assert.NotNull(input.Variables);
-        Assert.Equal(0, input.Variables.Count);
+        Assert.Empty(input.Variables);
     }
 
     [Fact]
