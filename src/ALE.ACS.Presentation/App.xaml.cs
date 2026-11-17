@@ -1,5 +1,6 @@
 ﻿using ALE.ACS.Application.DependencyInjection;
 using ALE.ACS.Presentation.DependencyInjection;
+using ALE.ACS.Presentation.Shell.Themes;
 using ALE.ACS.Presentation.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,6 +33,10 @@ public partial class App : System.Windows.Application
     {
         await _host.StartAsync();
 
+        // Inicializa o ThemeManager: detecta preferência salva, registra listener
+        // de mudança de tema do Windows (modo Auto) e aplica o tema efetivo.
+        ThemeManager.Initialize();
+
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
 
         MainWindow = mainWindow;
@@ -43,6 +48,9 @@ public partial class App : System.Windows.Application
 
     protected override async void OnExit(System.Windows.ExitEventArgs e)
     {
+        // Remove o listener de SystemEvents para evitar leak após shutdown.
+        ThemeManager.Shutdown();
+
         await _host.StopAsync();
 
         _host.Dispose();

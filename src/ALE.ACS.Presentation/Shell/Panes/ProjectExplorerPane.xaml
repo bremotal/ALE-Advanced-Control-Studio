@@ -9,15 +9,15 @@
              d:DesignWidth="300">
 
     <Border Padding="8"
-        BorderBrush="#C0C0C0"
-        BorderThickness="1"
-        Background="White">
+        BorderBrush="{DynamicResource BorderBrush}"
+        BorderThickness="0"
+        Background="Transparent">
 
         <TreeView ItemsSource="{Binding ProjectItems}"
                   behaviors:TreeViewSelectionBehavior.SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                   BorderThickness="0"
                   Background="Transparent"
-                  Foreground="Black">
+                  Foreground="{DynamicResource TextForegroundBrush}">
 
             <TreeView.InputBindings>
                 <MouseBinding Gesture="LeftDoubleClick"
@@ -29,6 +29,7 @@
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
                     <!-- O Tag de cada TreeViewItem aponta para o DataContext (MainWindowViewModel) -->
                     <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                    <Setter Property="Foreground" Value="{DynamicResource TextForegroundBrush}" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
@@ -59,7 +60,7 @@
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                     <TextBlock Text="{Binding Name}"
-                     Foreground="Black"/>
+                     Foreground="{DynamicResource TextForegroundBrush}"/>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
 

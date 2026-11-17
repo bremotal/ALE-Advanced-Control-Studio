@@ -4,6 +4,18 @@
 
     <Application.Resources>
 
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                  Slot dinâmico para o tema ativo.
+                  O ThemeManager.cs troca o Source deste dicionário entre
+                  Shell/Themes/LightTheme.xaml e Shell/Themes/DarkTheme.xaml
+                  em tempo de execução (Auto / Light / Dark).
+                -->
+                <ResourceDictionary Source="Shell/Themes/LightTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
     </Application.Resources>
 
 </Application>

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:panes="clr-namespace:ALE.ACS.Presentation.Shell.Panes"
         mc:Ignorable="d"
+        Style="{StaticResource MainWindowStyle}"
         Title="{Binding WindowTitle}"
         Height="750"
         Width="1200"
@@ -19,8 +20,97 @@
 
     <DockPanel>
 
-        <!-- MENU -->
-        <Menu DockPanel.Dock="Top">
+        <!-- ===== TITLEBAR (custom, mimics preview-ui-fase2.html) ===== -->
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource SidebarBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Height="36">
+            <Grid Margin="12,0,8,0">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Brand -->
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Border Width="18" Height="18"
+                            CornerRadius="4"
+                            Background="{DynamicResource AccentBrush}"
+                            Margin="0,0,6,0">
+                        <TextBlock Text="A"
+                                   Foreground="White"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="ALE ACS"
+                               FontWeight="SemiBold"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextForegroundBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Breadcrumb -->
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Margin="14,0,0,0"
+                           FontSize="12"
+                           Foreground="{DynamicResource MutedForegroundBrush}"
+                           TextTrimming="CharacterEllipsis">
+                    <Run Text="{Binding ProjectStatus, Mode=OneWay}"/>
+                    <Run Text=" / "/>
+                    <Run Text="{Binding DocumentStatus, Mode=OneWay}"/>
+                </TextBlock>
+
+                <!-- Action icons -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,4,0">
+                    <Button Style="{StaticResource IconButton}"
+                            Command="{Binding RunSimulationCommand}"
+                            ToolTip="Run / Simulate"
+                            Content="▶"/>
+                    <Button Style="{StaticResource IconButton}"
+                            Command="{Binding RunValidationCommand}"
+                            ToolTip="Validate"
+                            Content="✓"/>
+                </StackPanel>
+
+                <!-- Theme toggle pill -->
+                <Button Grid.Column="3"
+                        Style="{StaticResource ThemedButton}"
+                        Padding="10,4"
+                        FontSize="11"
+                        Margin="0,0,6,0"
+                        VerticalAlignment="Center"
+                        Command="{Binding CycleThemeCommand}"
+                        ToolTip="Alternar tema (Auto / Light / Dark)"
+                        Content="🎨 Theme"/>
+
+                <!-- Output mode toggle pill -->
+                <Button Grid.Column="4"
+                        Style="{StaticResource ThemedButton}"
+                        Padding="10,4"
+                        FontSize="11"
+                        VerticalAlignment="Center"
+                        Command="{Binding ToggleOutputModeCommand}"
+                        ToolTip="Output: painel inferior ↔ aba no content"
+                        Content="📊 Output"/>
+
+            </Grid>
+        </Border>
+
+        <!-- ===== MENU (kept from original, themed via MenuItem style) ===== -->
+        <Menu DockPanel.Dock="Top" Background="{DynamicResource PanelBackgroundBrush}">
 
             <MenuItem Header="_Arquivo">
                 <MenuItem Header="_Novo Projeto..."
@@ -56,29 +146,20 @@
             </MenuItem>
 
             <MenuItem Header="_Projeto">
-
                 <MenuItem Header="_Novo Projeto"
                           Command="{Binding NewProjectCommand}"/>
-
                 <MenuItem Header="Novo _Modelo"
                           Command="{Binding NewModelCommand}"/>
-
                 <MenuItem Header="_Abrir Projeto"
                           Command="{Binding OpenProjectCommand}"/>
-
                 <MenuItem Header="_Fechar Projeto"
                           Command="{Binding CloseProjectCommand}"/>
-
                 <Separator/>
-
                 <MenuItem Header="_Salvar Projeto"
                           Command="{Binding SaveProjectCommand}"/>
-
                 <MenuItem Header="Salvar Projeto _Como"
                           Command="{Binding SaveProjectAsCommand}"/>
-
                 <Separator/>
-
                 <MenuItem Header="Projetos _Recentes"
                           ItemsSource="{Binding RecentProjects}">
                     <MenuItem.ItemContainerStyle>
@@ -92,7 +173,6 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
-
             </MenuItem>
 
             <MenuItem Header="_Controladores">
@@ -145,203 +225,302 @@
 
         </Menu>
 
-        <!-- STATUS -->
+        <!-- ===== STATUS BAR (kept from original, themed) ===== -->
         <StatusBar DockPanel.Dock="Bottom"
                    Visibility="{Binding IsStatusBarVisible,
                                 Converter={StaticResource BooleanToVisibilityConverter}}">
-
             <StatusBarItem>
                 <TextBlock Text="{Binding ProjectStatus,
                                   StringFormat='Project: {0}'}"/>
             </StatusBarItem>
-
             <Separator/>
-
             <StatusBarItem>
                 <TextBlock Text="{Binding DocumentStatus,
                                   StringFormat='Document: {0}'}"/>
             </StatusBarItem>
-
             <Separator/>
-
             <StatusBarItem>
                 <TextBlock Text="{Binding StateStatus,
                                   StringFormat='State: {0}'}"/>
             </StatusBarItem>
-
         </StatusBar>
 
-        <!-- SHELL -->
+        <!-- ===== MAIN BODY: Sidebar | Splitter | Content (with bottom output panel) ===== -->
         <Grid>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="5"/>
-                <RowDefinition Height="180"/>
-            </Grid.RowDefinitions>
+            <!-- ===== SIDEBAR (Explorer + Properties unified) ===== -->
+            <Grid>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="320"/>
-            </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="260"
+                                      MinWidth="200"
+                                      MaxWidth="400"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Project Explorer -->
-            <Border Grid.Row="0"
-                    Grid.Column="0"
-                    BorderBrush="#C0C0C0"
-                    BorderThickness="1"
-                    Visibility="{Binding IsExplorerVisible,
-                                Converter={StaticResource BooleanToVisibilityConverter}}">
-
-                <panes:ProjectExplorerPane/>
-
-            </Border>
-
-            <!-- Splitter Esquerdo -->
-            <GridSplitter Grid.Row="0"
-                          Grid.Column="1"
-                          Width="5"
-                          HorizontalAlignment="Stretch"
-                          Visibility="{Binding IsExplorerVisible,
-                                      Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-            <!-- Workspace -->
-            <Border Grid.Row="0"
-                    Grid.Column="2"
-                    BorderBrush="#C0C0C0"
-                    BorderThickness="1"
-                    Visibility="{Binding IsWorkspaceVisible,
-                                Converter={StaticResource BooleanToVisibilityConverter}}">
-
-                <ContentControl Content="{Binding WorkspaceView}" />
-
-            </Border>
-
-            <!-- Splitter Direito -->
-            <GridSplitter Grid.Row="0"
-                          Grid.Column="3"
-                          Width="5"
-                          HorizontalAlignment="Stretch"
-                          Visibility="{Binding IsPropertiesVisible,
-                                      Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-            <!-- Properties -->
-            <Border Grid.Row="0"
-                    Grid.Column="4"
-                    BorderBrush="#C0C0C0"
-                    BorderThickness="1"
-                    Visibility="{Binding IsPropertiesVisible,
-                                Converter={StaticResource BooleanToVisibilityConverter}}">
-
-                <Grid Margin="16">
-
-                    <StackPanel>
-
-                        <TextBlock Text="Properties"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,0,8"/>
-
-                        <TextBlock Text="{Binding StatusText}"
-                                   Margin="0,0,0,12"
-                                   Foreground="#505050"
-                                   TextWrapping="Wrap"/>
-
-                        <TextBlock Text="Name"/>
-
-                        <TextBox Margin="0,4,0,8"
-                                 Text="{Binding SelectedName,
-                                        Mode=TwoWay,
-                                        UpdateSourceTrigger=PropertyChanged}"/>
-
-                        <TextBlock Text="Type"/>
-
-                        <TextBox Margin="0,4,0,8"
-                                 Text="{Binding SelectedType,
-                                        Mode=TwoWay,
-                                        UpdateSourceTrigger=PropertyChanged}"/>
-
-                        <TextBlock Text="Description"/>
-
-                        <TextBox Margin="0,4,0,8"
-                                 Height="120"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Text="{Binding SelectedDescription,
-                                        Mode=TwoWay,
-                                        UpdateSourceTrigger=PropertyChanged}"/>
-
-                        <Button Content="Apply"
-                                HorizontalAlignment="Left"
-                                Padding="12,4"
-                                Command="{Binding ApplyPropertiesCommand}"/>
-
-                        <TextBlock Margin="0,12,0,0"
-                                   Text="{Binding PropertiesContent}"
-                                   TextWrapping="Wrap"/>
-
-                    </StackPanel>
-
-                </Grid>
-
-            </Border>
-
-            <!-- Splitter Inferior - Output redimensionável -->
-            <GridSplitter Grid.Row="1"
-                          Grid.ColumnSpan="5"
-                          Height="6"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Center"
-                          ResizeDirection="Rows"
-                          ResizeBehavior="PreviousAndNext"
-                          ShowsPreview="True"
-                          Background="#C0C0C0"
-                          Cursor="SizeNS"
-                          Visibility="{Binding IsOutputVisible,
-                                      Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-            <!-- Output -->
-            <Border Grid.Row="2"
-                    Grid.ColumnSpan="5"
-                    BorderBrush="#C0C0C0"
-                    BorderThickness="1"
-                    Visibility="{Binding IsOutputVisible,
-                                Converter={StaticResource BooleanToVisibilityConverter}}">
-
-                <Grid Margin="12">
+                <!-- Sidebar content: Explorer pane on top, Properties pane on bottom -->
+                <Grid Grid.Column="0"
+                      Visibility="{Binding IsExplorerVisible,
+                                  Converter={StaticResource BooleanToVisibilityConverter}}">
 
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="Output"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,8"/>
+                    <!-- Explorer (tree) -->
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource SidebarBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,0,1,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="EXPLORER"
+                                       Style="{StaticResource MutedText}"
+                                       FontWeight="SemiBold"
+                                       Margin="12,8,8,4"/>
+                            <panes:ProjectExplorerPane/>
+                        </DockPanel>
+                    </Border>
 
-                    <!-- Output textual, selecionável e copiável -->
-                    <TextBox Grid.Row="1"
-                             Text="{Binding OutputText, Mode=OneWay}"
-                             IsReadOnly="True"
-                             AcceptsReturn="True"
-                             TextWrapping="NoWrap"
-                             VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto"
-                             Background="White"
-                             BorderThickness="0"
-                             Padding="4"
-                             FontFamily="Consolas"
-                             FontSize="12"
-                             IsTabStop="True"/>
+                    <!-- Horizontal splitter -->
+                    <GridSplitter Grid.Row="1"
+                                  Height="5"
+                                  HorizontalAlignment="Stretch"
+                                  Background="{DynamicResource BorderBrush}"
+                                  Visibility="{Binding IsPropertiesVisible,
+                                              Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                    <!-- Properties (selected item) -->
+                    <Border Grid.Row="2"
+                            Height="200"
+                            MinHeight="120"
+                            Background="{DynamicResource SidebarBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Visibility="{Binding IsPropertiesVisible,
+                                        Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                        <DockPanel Margin="12,8,12,12">
+                            <TextBlock DockPanel.Dock="Top"
+                                       Text="PROPERTIES"
+                                       Style="{StaticResource MutedText}"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,8"/>
+
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+
+                                    <TextBlock Text="Name"
+                                               Style="{StaticResource MutedText}"
+                                               Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource ThemedTextBox}"
+                                             Margin="0,0,0,8"
+                                             Text="{Binding SelectedName,
+                                                    Mode=TwoWay,
+                                                    UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Text="Type"
+                                               Style="{StaticResource MutedText}"
+                                               Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource ThemedTextBox}"
+                                             Margin="0,0,0,8"
+                                             IsReadOnly="True"
+                                             Text="{Binding SelectedType,
+                                                    Mode=TwoWay,
+                                                    UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <TextBlock Text="Description"
+                                               Style="{StaticResource MutedText}"
+                                               Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource ThemedTextBox}"
+                                             Margin="0,0,0,8"
+                                             Height="80"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"
+                                             Text="{Binding SelectedDescription,
+                                                    Mode=TwoWay,
+                                                    UpdateSourceTrigger=PropertyChanged}"/>
+
+                                    <Button Style="{StaticResource PrimaryButton}"
+                                            Content="Apply"
+                                            HorizontalAlignment="Left"
+                                            Margin="0,4,0,12"
+                                            Command="{Binding ApplyPropertiesCommand}"/>
+
+                                    <TextBlock Text="{Binding PropertiesContent}"
+                                               TextWrapping="Wrap"
+                                               Style="{StaticResource MutedText}"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
 
                 </Grid>
 
-            </Border>
+                <!-- Vertical splitter between sidebar and content -->
+                <GridSplitter Grid.Column="1"
+                              Width="5"
+                              HorizontalAlignment="Stretch"
+                              Background="{DynamicResource BorderBrush}"
+                              Visibility="{Binding IsWorkspaceVisible,
+                                          Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                <!-- ===== CONTENT: Tabs (Designer | Output-when-tab-mode) + Bottom Output panel ===== -->
+                <Grid Grid.Column="2"
+                      Visibility="{Binding IsWorkspaceVisible,
+                                  Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="180"
+                                       MinHeight="100"
+                                       MaxHeight="500"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Content header: title + actions + tabs -->
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource PanelBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,0,1,0">
+                        <DockPanel>
+
+                            <!-- Toolbar -->
+                            <Border DockPanel.Dock="Top"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="14,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding DocumentStatus}"
+                                                   Style="{StaticResource HeadingText}"/>
+                                        <TextBlock Text="{Binding StatusText}"
+                                                   Style="{StaticResource MutedText}"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <Button Style="{StaticResource ThemedButton}"
+                                                Content="Validate"
+                                                Margin="0,0,6,0"
+                                                Command="{Binding RunValidationCommand}"/>
+                                        <Button Style="{StaticResource PrimaryButton}"
+                                                Content="▶ Simulate"
+                                                Command="{Binding RunSimulationCommand}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tabs (Output tab only shows when OutputModeIsTab=true) -->
+                            <Border DockPanel.Dock="Top"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Background="{DynamicResource PanelBackgroundBrush}">
+                                <TabControl Background="Transparent"
+                                            BorderThickness="0"
+                                            Padding="8,0">
+
+                                    <TabItem Header="Designer">
+                                        <ContentControl Content="{Binding WorkspaceView}" />
+                                    </TabItem>
+
+                                    <TabItem Header="Output"
+                                             Visibility="{Binding OutputModeIsTab,
+                                                         Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <TextBox Text="{Binding OutputText, Mode=OneWay}"
+                                                 IsReadOnly="True"
+                                                 AcceptsReturn="True"
+                                                 TextWrapping="NoWrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 HorizontalScrollBarVisibility="Auto"
+                                                 Background="{DynamicResource BackgroundBrush}"
+                                                 BorderThickness="0"
+                                                 Padding="8"
+                                                 FontFamily="{StaticResource MonoFontFamily}"
+                                                 FontSize="12"/>
+                                    </TabItem>
+                                </TabControl>
+                            </Border>
+
+                        </DockPanel>
+                    </Border>
+
+                    <!-- ===== BOTTOM OUTPUT PANEL (only when OutputVisible=true) ===== -->
+                    <!-- GridSplitter horizontal: permite redimensionar o painel de output -->
+                    <GridSplitter Grid.Row="1"
+                                  Height="5"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Center"
+                                  ResizeDirection="Rows"
+                                  ResizeBehavior="PreviousAndNext"
+                                  ShowsPreview="True"
+                                  Background="{DynamicResource BorderBrush}"
+                                  Cursor="SizeNS"
+                                  Visibility="{Binding IsOutputVisible,
+                                              Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource PanelBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Visibility="{Binding IsOutputVisible,
+                                        Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <DockPanel>
+
+                            <Border DockPanel.Dock="Top"
+                                    Background="{DynamicResource PanelAltBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="12,6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                                               Text="🖥️ OUTPUT"
+                                               Style="{StaticResource BodyText}"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding StateStatus, StringFormat=' · {0}'}"
+                                               Style="{StaticResource MutedText}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"/>
+                                </Grid>
+                            </Border>
+
+                            <TextBox Text="{Binding OutputText, Mode=OneWay}"
+                                     IsReadOnly="True"
+                                     AcceptsReturn="True"
+                                     TextWrapping="NoWrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Auto"
+                                     Background="{DynamicResource BackgroundBrush}"
+                                     BorderThickness="0"
+                                     Padding="10"
+                                     FontFamily="{StaticResource MonoFontFamily}"
+                                     FontSize="12"/>
+                        </DockPanel>
+                    </Border>
+
+                </Grid>
+
+            </Grid>
 
         </Grid>
 

@@ -71,6 +71,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool isStatusBarVisible = true;
 
+    /// <summary>
+    /// Quando true, o painel de Output aparece como aba no content;
+    /// quando false, aparece como painel inferior (padrão).
+    /// </summary>
+    [ObservableProperty]
+    private bool outputModeIsTab = false;
+
     public WorkspaceView WorkspaceView { get; }
 
     public ObservableCollection<string> RecentProjects { get; } = [];
@@ -522,6 +529,22 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsStatusBarVisible = !IsStatusBarVisible;
         LogInfo($"Status Bar visibility: {(IsStatusBarVisible ? "Visible" : "Hidden")}");
+    }
+
+    [RelayCommand]
+    private void CycleTheme()
+    {
+        Shell.Themes.ThemeManager.Cycle();
+        var effective = Shell.Themes.ThemeManager.EffectiveIsDark ? "dark" : "light";
+        var mode = Shell.Themes.ThemeManager.CurrentMode;
+        LogInfo($"Theme cycled to {mode} (effective: {effective}).");
+    }
+
+    [RelayCommand]
+    private void ToggleOutputMode()
+    {
+        OutputModeIsTab = !OutputModeIsTab;
+        LogInfo($"Output mode: {(OutputModeIsTab ? "Tab in content" : "Bottom panel")}.");
     }
 
     [RelayCommand]
