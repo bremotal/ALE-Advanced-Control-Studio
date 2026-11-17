@@ -106,18 +106,28 @@ public sealed class FuzzyController
             }
         }
 
-        var inferenceResult = InferenceEngine.Evaluate(inputs, Rules);
-
+        // Sugeno returns crisp directly.
         if (EngineType == InferenceEngineType.Sugeno)
         {
-            return inferenceResult;
+            return InferenceEngine.Evaluate(inputs, Rules);
         }
 
+        // Mamdani: compute the activated consequent MFs + weights, then
+        // defuzzify over the REAL output range (not the old fixed [0,100]).
         if (Defuzzifier is null)
         {
             return 0.0;
         }
 
-        return Defuzzifier.Defuzzify([], 0.0, 100.0);
+        var activatedFunctions = InferenceEngine.EvaluateActivated(inputs, Rules);
+        if (activatedFunctions.Count == 0)
+        {
+            // Nenhuma regra disparou — ponto médio do range como fallback seguro.
+            var (midMin, midMax) = FuzzySpec.ComputeOutputRange(Output);
+            return (midMin + midMax) * 0.5;
+        }
+
+        var (outputMin, outputMax) = FuzzySpec.ComputeOutputRange(Output);
+        return Defuzzifier.Defuzzify(activatedFunctions, outputMin, outputMax);
     }
 }

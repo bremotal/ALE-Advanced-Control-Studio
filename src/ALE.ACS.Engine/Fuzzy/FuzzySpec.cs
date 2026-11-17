@@ -76,7 +76,13 @@ public sealed class FuzzySpec : IControllerSpec
     /// <summary>Referência à FuzzyController configurada (para uso pela factory).</summary>
     public FuzzyController InnerController => _controller;
 
-    private static (double Min, double Max) ComputeOutputRange(FuzzyVariable output)
+    /// <summary>
+    /// Calcula o intervalo [min, max] do universo de discurso da variável de
+    /// saída, combinando os <see cref="IMembershipFunction.GetSupportBounds"/>
+    /// de todos os termos. Usado pelo <see cref="FuzzyController"/> para passar
+    /// o range real ao defuzzifier (em vez do [0,100] hard-coded antigo).
+    /// </summary>
+    internal static (double Min, double Max) ComputeOutputRange(FuzzyVariable output)
     {
         double min = double.PositiveInfinity, max = double.NegativeInfinity;
         bool found = false;

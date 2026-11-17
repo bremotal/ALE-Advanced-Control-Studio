@@ -1,3 +1,4 @@
+using ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 using ALE.ACS.Engine.Fuzzy.Rules;
 
 namespace ALE.ACS.Engine.Fuzzy.Inference;
@@ -50,6 +51,14 @@ public sealed class SugenoInferenceEngine : IFuzzyInferenceEngine
 
         return Math.Abs(weightSum) < 1e-12 ? 0.0 : weightedSum / weightSum;
     }
+
+    /// <inheritdoc />
+    public List<(IMembershipFunction Function, double Weight)> EvaluateActivated(
+        Dictionary<string, double> inputs,
+        IEnumerable<FuzzyRule> rules)
+        => throw new NotSupportedException(
+            "EvaluateActivated não se aplica a Sugeno, que retorna um valor crisp " +
+            "diretamente via Evaluate. Use FuzzyController.Evaluate para Sugeno.");
 
     private static double EvaluateAntecedents(Dictionary<string, double> inputs, FuzzyRule rule)
     {

@@ -64,7 +64,13 @@ public sealed class FuzzyControllerTests
 
         var result = controller.Evaluate(new Dictionary<string, double> { ["Temperature"] = 15.0 });
 
-        Assert.Equal(0.0, result, 6);
+        // Antes do fix o resultado era 0.0 por BUG: o defuzzifier recebia array
+        // vazio e o range fixo [0,100] ignorava o suporte real dos termos.
+        // Agora o Mamdani calcula: Temperature=15 ativa só a regra "Low" (MF
+        // triangular 0-10-20, μ(15)=0.5). O CentroidDefuzzifier faz a discretização
+        // sobre o range real [0,20] (suporte do termo Low) e retorna o centróide
+        // do conjunto triangular simétrico — exatamente 10.0.
+        Assert.Equal(10.0, result, 6);
     }
 
     [Fact]
