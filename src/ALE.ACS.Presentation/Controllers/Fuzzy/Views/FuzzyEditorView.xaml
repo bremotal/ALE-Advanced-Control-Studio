@@ -3,41 +3,407 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+             d:DesignHeight="600"
+             d:DesignWidth="900"
+             Background="{DynamicResource BackgroundBrush}">
 
-    <Grid Margin="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ALE.ACS.Presentation;component/Controllers/Fuzzy/Resources/FuzzyResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
-        <TextBlock Text="Fuzzy Editor"
-                   FontSize="20"
-                   FontWeight="SemiBold"/>
+    <!-- ScrollViewer envolve todo o conteúdo para garantir rolagem quando
+         o editor for maior que a área visível do content central. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  Padding="16">
 
-        <TextBlock Grid.Row="1"
-                   Margin="0,8,0,12"
-                   Text="{Binding Controller.Description}"/>
+        <!-- StackPanel vertical: header + grid 2x2 de cards -->
+        <StackPanel Orientation="Vertical">
 
-        <GroupBox Grid.Row="2" Header="Inputs" Margin="0,0,0,8">
-            <ListBox ItemsSource="{Binding Controller.Inputs}"/>
-        </GroupBox>
+            <!-- ===== Header do editor ===== -->
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <GroupBox Grid.Row="3" Header="Outputs" Margin="0,0,0,8">
-            <ListBox ItemsSource="{Binding Controller.Outputs}"/>
-        </GroupBox>
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <TextBlock Text="{Binding Controller.Name}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextForegroundBrush}"/>
+                    <TextBlock Text="{Binding Controller.Description}"
+                               Margin="0,4,0,0"
+                               FontSize="12"
+                               Foreground="{DynamicResource MutedForegroundBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
 
-        <GroupBox Grid.Row="4" Header="Membership Functions" Margin="0,0,0,8">
-            <ListBox ItemsSource="{Binding Controller.MembershipFunctions}"/>
-        </GroupBox>
+                <!-- Badges de contagem -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top">
+                    <Border Padding="8,3"
+                            Margin="4,0,0,0"
+                            CornerRadius="10"
+                            Background="{DynamicResource AccentBrush}">
+                        <TextBlock FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="White">
+                            <Run Text="Inputs: "/>
+                            <Run Text="{Binding Controller.Inputs.Count}"/>
+                        </TextBlock>
+                    </Border>
+                    <Border Padding="8,3"
+                            Margin="4,0,0,0"
+                            CornerRadius="10"
+                            Background="{DynamicResource GoodBrush}">
+                        <TextBlock FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="White">
+                            <Run Text="Outputs: "/>
+                            <Run Text="{Binding Controller.Outputs.Count}"/>
+                        </TextBlock>
+                    </Border>
+                    <Border Padding="8,3"
+                            Margin="4,0,0,0"
+                            CornerRadius="10"
+                            Background="{DynamicResource WarnBrush}">
+                        <TextBlock FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="White">
+                            <Run Text="Rules: "/>
+                            <Run Text="{Binding Controller.RuleBase.Count}"/>
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+            </Grid>
 
-        <GroupBox Grid.Row="5" Header="Rule Base">
-            <ListBox ItemsSource="{Binding Controller.RuleBase}"/>
-        </GroupBox>
-    </Grid>
+            <!-- ===== Grid 2x2 dos cards ===== -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ===== Card 1: Inputs ===== -->
+                <Border Grid.Row="0"
+                        Grid.Column="0"
+                        Margin="0,0,8,8"
+                        Padding="14"
+                        Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header do card -->
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
+                                    Margin="0,0,0,10">
+                            <TextBlock Text="▶"
+                                       Margin="0,0,8,0"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text="Inputs"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextForegroundBrush}"/>
+                            <TextBlock Margin="8,0,0,0"
+                                       VerticalAlignment="Bottom"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource MutedForegroundBrush}">
+                                <Run Text="("/><Run Text="{Binding Controller.Inputs.Count}"/><Run Text=")"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Lista -->
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Controller.Inputs}"
+                                 SelectedItem="{Binding SelectedInput, Mode=TwoWay}"
+                                 Background="{DynamicResource PanelAltBackgroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 BorderThickness="1"
+                                 Foreground="{DynamicResource TextForegroundBrush}"
+                                 ItemTemplate="{StaticResource FuzzyItemTemplate}"/>
+
+                        <!-- Linha de adicionar -->
+                        <Grid Grid.Row="2" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewInput, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{DynamicResource ThemedTextBox}"
+                                     Margin="0,0,6,0"/>
+                            <Button Grid.Column="1"
+                                    Content="+ Add"
+                                    Command="{Binding AddInputCommand}"
+                                    Style="{DynamicResource PrimaryButton}"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"/>
+                            <Button Grid.Column="2"
+                                    Content="− Remove"
+                                    Command="{Binding RemoveInputCommand}"
+                                    Style="{DynamicResource MiniButton}"
+                                    Padding="10,4"/>
+                        </Grid>
+
+                        <TextBlock Grid.Row="3"
+                                   Margin="0,4,0,0"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                   Text="Enter cria nova variável de entrada (Process Variable, Setpoint...)."/>
+                    </Grid>
+                </Border>
+
+                <!-- ===== Card 2: Outputs ===== -->
+                <Border Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="8,0,0,8"
+                        Padding="14"
+                        Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
+                                    Margin="0,0,0,10">
+                            <TextBlock Text="◀"
+                                       Margin="0,0,8,0"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource GoodBrush}"/>
+                            <TextBlock Text="Outputs"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextForegroundBrush}"/>
+                            <TextBlock Margin="8,0,0,0"
+                                       VerticalAlignment="Bottom"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource MutedForegroundBrush}">
+                                <Run Text="("/><Run Text="{Binding Controller.Outputs.Count}"/><Run Text=")"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Controller.Outputs}"
+                                 SelectedItem="{Binding SelectedOutput, Mode=TwoWay}"
+                                 Background="{DynamicResource PanelAltBackgroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 BorderThickness="1"
+                                 Foreground="{DynamicResource TextForegroundBrush}"
+                                 ItemTemplate="{StaticResource FuzzyItemTemplate}"/>
+
+                        <Grid Grid.Row="2" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewOutput, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{DynamicResource ThemedTextBox}"
+                                     Margin="0,0,6,0"/>
+                            <Button Grid.Column="1"
+                                    Content="+ Add"
+                                    Command="{Binding AddOutputCommand}"
+                                    Style="{DynamicResource PrimaryButton}"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"/>
+                            <Button Grid.Column="2"
+                                    Content="− Remove"
+                                    Command="{Binding RemoveOutputCommand}"
+                                    Style="{DynamicResource MiniButton}"
+                                    Padding="10,4"/>
+                        </Grid>
+
+                        <TextBlock Grid.Row="3"
+                                   Margin="0,4,0,0"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                   Text="Variáveis manipuladas pelo controlador (MV/Control Output)."/>
+                    </Grid>
+                </Border>
+
+                <!-- ===== Card 3: Membership Functions ===== -->
+                <Border Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="0,8,8,0"
+                        Padding="14"
+                        Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
+                                    Margin="0,0,0,10">
+                            <TextBlock Text="∿"
+                                       Margin="0,0,8,0"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource WarnBrush}"/>
+                            <TextBlock Text="Membership Functions"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextForegroundBrush}"/>
+                            <TextBlock Margin="8,0,0,0"
+                                       VerticalAlignment="Bottom"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource MutedForegroundBrush}">
+                                <Run Text="("/><Run Text="{Binding Controller.MembershipFunctions.Count}"/><Run Text=")"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Controller.MembershipFunctions}"
+                                 SelectedItem="{Binding SelectedMembershipFunction, Mode=TwoWay}"
+                                 Background="{DynamicResource PanelAltBackgroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 BorderThickness="1"
+                                 Foreground="{DynamicResource TextForegroundBrush}"
+                                 ItemTemplate="{StaticResource FuzzyItemTemplate}"/>
+
+                        <Grid Grid.Row="2" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewMembershipFunction, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{DynamicResource ThemedTextBox}"
+                                     Margin="0,0,6,0"/>
+                            <Button Grid.Column="1"
+                                    Content="+ Add"
+                                    Command="{Binding AddMembershipFunctionCommand}"
+                                    Style="{DynamicResource PrimaryButton}"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"/>
+                            <Button Grid.Column="2"
+                                    Content="− Remove"
+                                    Command="{Binding RemoveMembershipFunctionCommand}"
+                                    Style="{DynamicResource MiniButton}"
+                                    Padding="10,4"/>
+                        </Grid>
+
+                        <TextBlock Grid.Row="3"
+                                   Margin="0,4,0,0"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                   Text="Rótulos linguísticos (Low, Medium, High...) e suas funções de pertinência."/>
+                    </Grid>
+                </Border>
+
+                <!-- ===== Card 4: Rule Base ===== -->
+                <Border Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="8,8,0,0"
+                        Padding="14"
+                        Background="{DynamicResource PanelBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Horizontal"
+                                    Margin="0,0,0,10">
+                            <TextBlock Text="⇒"
+                                       Margin="0,0,8,0"
+                                       FontSize="16"
+                                       Foreground="{DynamicResource BadBrush}"/>
+                            <TextBlock Text="Rule Base"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextForegroundBrush}"/>
+                            <TextBlock Margin="8,0,0,0"
+                                       VerticalAlignment="Bottom"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource MutedForegroundBrush}">
+                                <Run Text="("/><Run Text="{Binding Controller.RuleBase.Count}"/><Run Text=")"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Controller.RuleBase}"
+                                 SelectedItem="{Binding SelectedRule, Mode=TwoWay}"
+                                 Background="{DynamicResource PanelAltBackgroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 BorderThickness="1"
+                                 Foreground="{DynamicResource TextForegroundBrush}"
+                                 ItemTemplate="{StaticResource FuzzyRuleTemplate}"/>
+
+                        <Grid Grid.Row="2" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding NewRule, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{DynamicResource ThemedTextBox}"
+                                     Margin="0,0,6,0"/>
+                            <Button Grid.Column="1"
+                                    Content="+ Add"
+                                    Command="{Binding AddRuleCommand}"
+                                    Style="{DynamicResource PrimaryButton}"
+                                    Padding="12,4"
+                                    Margin="0,0,4,0"/>
+                            <Button Grid.Column="2"
+                                    Content="− Remove"
+                                    Command="{Binding RemoveRuleCommand}"
+                                    Style="{DynamicResource MiniButton}"
+                                    Padding="10,4"/>
+                        </Grid>
+
+                        <TextBlock Grid.Row="3"
+                                   Margin="0,4,0,0"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                   Text="Regras no formato: IF &lt;antecedent&gt; THEN &lt;consequent&gt;."/>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
 
 </UserControl>
