@@ -19,6 +19,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ALE.ACS.Application\ALE.ACS.Application.csproj" />
+		<ProjectReference Include="..\ALE.ACS.Export\ALE.ACS.Export.csproj" />
+		<ProjectReference Include="..\ALE.ACS.Infrastructure\ALE.ACS.Infrastructure.csproj" />
 		<ProjectReference Include="..\ALE.ACS.Shared\ALE.ACS.Shared.csproj" />
 	</ItemGroup>
 

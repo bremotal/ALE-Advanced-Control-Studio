@@ -1,6 +1,43 @@
 namespace ALE.ACS.Domain.Common.Results;
 
 /// <summary>
+/// Representa o resultado de uma operação que não retorna valor.
+/// </summary>
+public sealed class Result
+{
+    private Result(bool isSuccess, string? error)
+    {
+        IsSuccess = isSuccess;
+        Error = error;
+    }
+
+    /// <summary>
+    /// Indica se a operação foi executada com sucesso.
+    /// </summary>
+    public bool IsSuccess { get; }
+
+    /// <summary>
+    /// Mensagem de erro da operação (null quando sucesso).
+    /// </summary>
+    public string? Error { get; }
+
+    /// <summary>
+    /// Cria um resultado de sucesso.
+    /// </summary>
+    public static Result Success() => new(true, null);
+
+    /// <summary>
+    /// Cria um resultado de falha.
+    /// </summary>
+    public static Result Failure(string error)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(error);
+
+        return new Result(false, error);
+    }
+}
+
+/// <summary>
 /// Representa o resultado de uma operação do domínio.
 /// </summary>
 /// <typeparam name="T">Tipo do valor retornado.</typeparam>

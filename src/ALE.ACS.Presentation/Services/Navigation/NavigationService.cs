@@ -1,16 +1,55 @@
+using ALE.ACS.Presentation.Controllers.Adaptive.ViewModels;
+using ALE.ACS.Presentation.Controllers.Common.ViewModels;
 using ALE.ACS.Presentation.Controllers.Fuzzy.Model;
 using ALE.ACS.Presentation.Controllers.Fuzzy.ViewModels;
+using ALE.ACS.Presentation.Controllers.Identification.ViewModels;
+using ALE.ACS.Presentation.Controllers.MPC.ViewModels;
+using ALE.ACS.Presentation.Controllers.Neural.ViewModels;
+using ALE.ACS.Presentation.Controllers.Optimization.ViewModels;
+using ALE.ACS.Presentation.Controllers.PID.ViewModels;
 using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Services.Documents;
 
 namespace ALE.ACS.Presentation.Services.Navigation;
 
+/// <summary>
+/// Serviço de navegação da IDE.
+/// </summary>
+/// <remarks>
+/// Mantém um <b>registry</b> de fábricas de editor ViewModel por chave de nó
+/// (nome do controller no Project Explorer). Quando um nó é selecionado:
+/// <list type="bullet">
+///   <item>Fuzzy: caminho especializado (mantém o editor rico existente).</item>
+///   <item>Demais controllers (PID, MPC, Adaptive, Identification, Neural, Optimization):
+///         o registry cria/recupera um <see cref="ControllerEditorViewModelBase"/>
+///         com as seções default do tipo.</item>
+///   <item>Model e demais nós: comportamento legado (documento genérico).</item>
+/// </list>
+/// </remarks>
 public sealed class NavigationService : INavigationService
 {
     private IDocumentService? _documentService;
 
+    // Fuzzy mantém cache próprio (editor especializado com modelo próprio).
     private readonly Dictionary<string, FuzzyEditorViewModel> _fuzzyEditors =
         new(StringComparer.OrdinalIgnoreCase);
+
+    // Registry genérico para editores baseados em ControllerEditorViewModelBase.
+    private readonly Dictionary<string, ControllerEditorViewModelBase> _controllerEditors =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    // Mapeia nome do nó → factory de editor. Permite adicionar novos editores
+    // sem tocar no SelectNode (Open/Closed Principle).
+    private static readonly Dictionary<string, Func<ControllerEditorViewModelBase>> EditorFactories =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["PID Controller"] = () => new PidEditorViewModel(),
+            ["MPC Controller"] = () => new MpcEditorViewModel(),
+            ["Adaptive MPC Controller"] = () => new AdaptiveEditorViewModel(),
+            ["Identification"] = () => new IdentificationEditorViewModel(),
+            ["Neural Controller"] = () => new NeuralEditorViewModel(),
+            ["Optimization Controller"] = () => new OptimizationEditorViewModel(),
+        };
 
     public static INavigationService Current { get; } = new NavigationService();
 
@@ -56,10 +95,7 @@ public sealed class NavigationService : INavigationService
             $"Type: {node.Type}\n" +
             $"Children: {node.Children.Count}";
 
-        // ============================================================
-        // FUZZY CONTROLLER
-        // ============================================================
-        // Fuzzy possui um editor especializado.
+        // FUZZY CONTROLLER — editor especializado.
         if (IsFuzzyController(node))
         {
             OpenFuzzyEditor(node.Name);
@@ -72,14 +108,20 @@ public sealed class NavigationService : INavigationService
             return;
         }
 
-        // ============================================================
-        // MODEL
-        // ============================================================
-        // Model já possui um EngineeringDocument próprio.
-        //
-        // NÃO devemos chamar OpenDocument() aqui, pois isso criaria
-        // outro documento genérico e perderia a referência ao
-        // ControlModel associado ao documento original.
+        // CONTROLLERS COMUNS (PID, MPC, ...) — registry genérico.
+        if (EditorFactories.TryGetValue(node.Name, out var factory))
+        {
+            OpenControllerEditor(node.Name, factory);
+
+            OutputMessage =
+                $"Controller changed: {node.Name}. " +
+                $"Document opened: {node.Name}.";
+
+            RaiseNavigationChanged();
+            return;
+        }
+
+        // MODEL — documento genérico existente.
         if (node.Type == ProjectItemType.Model)
         {
             if (_documentService is not null)
@@ -108,10 +150,7 @@ public sealed class NavigationService : INavigationService
             return;
         }
 
-        // ============================================================
-        // DEMAIS NÓS
-        // ============================================================
-        // Para os demais tipos ainda utilizamos o documento genérico.
+        // DEMAIS NÓS — documento genérico.
         if (_documentService is not null)
         {
             _documentService.OpenDocument(
@@ -250,25 +289,62 @@ public sealed class NavigationService : INavigationService
         OutputMessage = $"Document opened: {editorName}";
     }
 
-    private object? ResolveEditorViewModel(
-        EngineeringDocument document)
+    private void OpenControllerEditor(
+        string editorName,
+        Func<ControllerEditorViewModelBase> factory)
     {
-        if (string.Equals(
-                document.Kind,
-                "Fuzzy",
-                StringComparison.OrdinalIgnoreCase)
-            && _fuzzyEditors.TryGetValue(
-                document.Title,
-                out var fuzzyViewModel))
+        if (_documentService is null)
+        {
+            return;
+        }
+
+        if (!_controllerEditors.TryGetValue(editorName, out var viewModel))
+        {
+            viewModel = factory();
+            _controllerEditors[editorName] = viewModel;
+        }
+
+        var controller = viewModel.Controller;
+
+        _documentService.OpenDocument(
+            editorName,
+            BuildControllerDocumentContent(controller),
+            controller.ControllerKind);
+
+        ActiveDocument = _documentService.ActiveDocument;
+
+        ActiveEditorViewModel = viewModel;
+
+        StatusMessage = $"Editor: {editorName}";
+
+        var totalItems = controller.Sections.Sum(s => s.Items.Count);
+
+        PropertiesMessage =
+            $"Name: {controller.Name}\n" +
+            $"Type: {controller.ControllerKind}\n" +
+            $"Sections: {controller.Sections.Count}\n" +
+            $"Total items: {totalItems}";
+
+        OutputMessage = $"Document opened: {editorName}";
+    }
+
+    private object? ResolveEditorViewModel(EngineeringDocument document)
+    {
+        if (string.Equals(document.Kind, "Fuzzy", StringComparison.OrdinalIgnoreCase)
+            && _fuzzyEditors.TryGetValue(document.Title, out var fuzzyViewModel))
         {
             return fuzzyViewModel;
+        }
+
+        if (_controllerEditors.TryGetValue(document.Title, out var controllerViewModel))
+        {
+            return controllerViewModel;
         }
 
         return null;
     }
 
-    private static FuzzyControllerModel CreateFuzzyControllerModel(
-        string name)
+    private static FuzzyControllerModel CreateFuzzyControllerModel(string name)
     {
         return new FuzzyControllerModel(
             name,
@@ -279,8 +355,7 @@ public sealed class NavigationService : INavigationService
             ["IF error is High THEN output is High"]);
     }
 
-    private static string BuildFuzzyDocumentContent(
-        FuzzyControllerModel model)
+    private static string BuildFuzzyDocumentContent(FuzzyControllerModel model)
     {
         return $"Fuzzy Editor\n"
              + $"Name: {model.Name}\n"
@@ -289,5 +364,26 @@ public sealed class NavigationService : INavigationService
              + $"Outputs: {string.Join(", ", model.Outputs)}\n"
              + $"Membership Functions: {string.Join(", ", model.MembershipFunctions)}\n"
              + $"Rule Base: {string.Join(" | ", model.RuleBase)}";
+    }
+
+    private static string BuildControllerDocumentContent(
+        Controllers.Common.Model.ControllerEditorModel controller)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"{controller.ControllerKind} Editor");
+        sb.AppendLine($"Name: {controller.Name}");
+        sb.AppendLine($"Description: {controller.Description}");
+        sb.AppendLine();
+
+        foreach (var section in controller.Sections)
+        {
+            sb.AppendLine($"[{section.Title}] ({section.Items.Count} items)");
+            foreach (var item in section.Items)
+            {
+                sb.AppendLine($"  - {item}");
+            }
+        }
+
+        return sb.ToString();
     }
 }

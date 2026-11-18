@@ -1,4 +1,6 @@
 ﻿using ALE.ACS.Application.DependencyInjection;
+using ALE.ACS.Export.DependencyInjection;
+using ALE.ACS.Infrastructure.DependencyInjection;
 using ALE.ACS.Presentation.DependencyInjection;
 using ALE.ACS.Presentation.Shell.Themes;
 using ALE.ACS.Presentation.Views;
@@ -20,10 +22,16 @@ public partial class App : System.Windows.Application
             .CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                // Application
+                // Infrastructure (persistência, file system, providers concretos)
+                services.AddInfrastructure();
+
+                // Application (services de projeto, controller, modelo + event bus)
                 services.AddApplication();
 
-                // Presentation
+                // Export (providers JSON + PLC + ExportManager)
+                services.AddExport();
+
+                // Presentation (views, viewmodels, services de UI)
                 services.AddPresentation();
             })
             .Build();

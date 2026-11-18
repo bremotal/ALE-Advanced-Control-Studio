@@ -1,14 +1,24 @@
-﻿<UserControl x:Class="ALE.ACS.Presentation.Views.WorkspaceView"
+<UserControl x:Class="ALE.ACS.Presentation.Views.WorkspaceView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:fuzzy="clr-namespace:ALE.ACS.Presentation.Controllers.Fuzzy.Views"
+             xmlns:pid="clr-namespace:ALE.ACS.Presentation.Controllers.PID.Views"
+             xmlns:mpc="clr-namespace:ALE.ACS.Presentation.Controllers.MPC.Views"
+             xmlns:adaptive="clr-namespace:ALE.ACS.Presentation.Controllers.Adaptive.Views"
+             xmlns:ident="clr-namespace:ALE.ACS.Presentation.Controllers.Identification.Views"
+             xmlns:neural="clr-namespace:ALE.ACS.Presentation.Controllers.Neural.Views"
+             xmlns:opt="clr-namespace:ALE.ACS.Presentation.Controllers.Optimization.Views"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+             d:DesignHeight="600"
+             d:DesignWidth="900"
+             Background="{DynamicResource BackgroundBrush}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
+        <!-- Documento genérico (texto) -->
         <DataTemplate x:Key="GenericDocumentTemplate">
             <Grid Margin="8">
                 <Grid.RowDefinitions>
@@ -18,141 +28,119 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Text="{Binding Kind, StringFormat='Type: {0}'}"
-                           Foreground="#505050"/>
+                           Foreground="{DynamicResource MutedForegroundBrush}"/>
 
                 <TextBlock Grid.Row="1"
                            Margin="0,4,0,8"
                            Text="{Binding LastModified, StringFormat='Modified: {0:g}'}"
-                           Foreground="#505050"/>
+                           Foreground="{DynamicResource MutedForegroundBrush}"/>
 
                 <TextBox Grid.Row="2"
                          Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
-                         HorizontalScrollBarVisibility="Auto"/>
+                         HorizontalScrollBarVisibility="Auto"
+                         Style="{DynamicResource ThemedTextBox}"/>
             </Grid>
         </DataTemplate>
 
+        <!-- Editor Fuzzy (especializado) -->
         <DataTemplate x:Key="FuzzyDocumentTemplate">
             <fuzzy:FuzzyEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
         </DataTemplate>
+
+        <!-- Editor PID -->
+        <DataTemplate x:Key="PidDocumentTemplate">
+            <pid:PidEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </DataTemplate>
+
+        <!-- Editor MPC -->
+        <DataTemplate x:Key="MpcDocumentTemplate">
+            <mpc:MpcEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </DataTemplate>
+
+        <!-- Editor Adaptive -->
+        <DataTemplate x:Key="AdaptiveDocumentTemplate">
+            <adaptive:AdaptiveEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </DataTemplate>
+
+        <!-- Editor Identification -->
+        <DataTemplate x:Key="IdentificationDocumentTemplate">
+            <ident:IdentificationEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </DataTemplate>
+
+        <!-- Editor Neural -->
+        <DataTemplate x:Key="NeuralDocumentTemplate">
+            <neural:NeuralEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </DataTemplate>
+
+        <!-- Editor Optimization -->
+        <DataTemplate x:Key="OptimizationDocumentTemplate">
+            <opt:OptimizationEditorView DataContext="{Binding DataContext.ActiveEngineeringEditorViewModel, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Background="#F7F7F7">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <!-- Layout simplificado: apenas o TabControl (painel lateral de propriedades
+         foi removido — já existe na sidebar esquerda). -->
+    <TabControl ItemsSource="{Binding Documents}"
+                SelectedItem="{Binding ActiveDocument, Mode=TwoWay}"
+                Background="{DynamicResource BackgroundBrush}"
+                BorderThickness="0"
+                Padding="0">
 
-        <Border BorderBrush="#D0D0D0"
-                BorderThickness="0,0,0,1"
-                Background="White">
-            <DockPanel Margin="12">
-                <TextBlock Text="{Binding WorkspaceTitle}"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"
-                           DockPanel.Dock="Left"/>
-
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            DockPanel.Dock="Right">
-                    <Button Content="Open Sample"
-                            Command="{Binding OpenSampleDocumentCommand}"/>
-                    <Button Content="Close"
-                            Command="{Binding CloseActiveDocumentCommand}"
-                            Margin="8,0,0,0"/>
+        <TabControl.ItemTemplate>
+            <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Title}"
+                               Foreground="{DynamicResource TextForegroundBrush}"/>
+                    <TextBlock Text=" *"
+                               Foreground="{DynamicResource BadBrush}"
+                               Visibility="{Binding IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <Button Content="x"
+                            Margin="8,0,0,0"
+                            Padding="4,0"
+                            Command="{Binding DataContext.CloseDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"
+                            Style="{DynamicResource MiniButton}"/>
                 </StackPanel>
-            </DockPanel>
-        </Border>
+            </DataTemplate>
+        </TabControl.ItemTemplate>
 
-        <Grid Grid.Row="1" Margin="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="1"
-                    Background="White">
-                <Grid Margin="12">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Text="Workspace Tabs"
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,8"/>
-
-                    <TabControl Grid.Row="1"
-                                ItemsSource="{Binding Documents}"
-                                SelectedItem="{Binding ActiveDocument, Mode=TwoWay}">
-                        <TabControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Title}"/>
-                                    <TextBlock Text=" *"
-                                               Foreground="#B3261E"
-                                               Visibility="{Binding IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                                    <Button Content="x"
-                                            Margin="8,0,0,0"
-                                            Padding="4,0"
-                                            Command="{Binding DataContext.CloseDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </TabControl.ItemTemplate>
-
-                        <TabControl.ContentTemplate>
-                            <DataTemplate>
-                                <ContentControl Content="{Binding}">
-                                    <ContentControl.Style>
-                                        <Style TargetType="ContentControl">
-                                            <Setter Property="ContentTemplate" Value="{StaticResource GenericDocumentTemplate}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Kind}" Value="Fuzzy">
-                                                    <Setter Property="ContentTemplate" Value="{StaticResource FuzzyDocumentTemplate}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ContentControl.Style>
-                                </ContentControl>
-                            </DataTemplate>
-                        </TabControl.ContentTemplate>
-                    </TabControl>
-                </Grid>
-            </Border>
-
-            <Border Grid.Column="1"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="1"
-                    Background="White">
-                <StackPanel Margin="12">
-                    <TextBlock Text="{Binding ActiveDocument.Title, FallbackValue='No document selected'}"
-                               FontSize="16"
-                               FontWeight="SemiBold"/>
-
-                    <TextBlock Margin="0,8,0,0"
-                               Text="{Binding ActiveDocument.Kind, StringFormat='Type: {0}', FallbackValue='Type: -'}"
-                               Foreground="#505050"/>
-
-                    <TextBlock Margin="0,4,0,0"
-                               Text="{Binding ActiveDocument.LastModified, StringFormat='Modified: {0:g}', FallbackValue='Modified: -'}"
-                               Foreground="#505050"/>
-
-                    <Separator Margin="0,12,0,12"/>
-
-                    <TextBox Text="{Binding ActiveDocument.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto"
-                             MinHeight="220"/>
-                </StackPanel>
-            </Border>
-        </Grid>
-    </Grid>
+        <TabControl.ContentTemplate>
+            <DataTemplate>
+                <ContentControl Content="{Binding}">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Setter Property="ContentTemplate" Value="{StaticResource GenericDocumentTemplate}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Kind}" Value="Fuzzy">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource FuzzyDocumentTemplate}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="PID">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource PidDocumentTemplate}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="MPC">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource MpcDocumentTemplate}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="Adaptive MPC">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource AdaptiveDocumentTemplate}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="Identification">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource IdentificationDocumentTemplate}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="Neural">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource NeuralDocumentTemplate}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="Optimization">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource OptimizationDocumentTemplate}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
+            </DataTemplate>
+        </TabControl.ContentTemplate>
+    </TabControl>
 
 </UserControl>

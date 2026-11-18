@@ -1,7 +1,12 @@
-﻿using ALE.ACS.Application.EventBus;
+﻿using ALE.ACS.Application.DigitalTwin;
+using ALE.ACS.Application.EventBus;
 using ALE.ACS.Application.Interfaces;
+using ALE.ACS.Domain.Common.Results;
 using ALE.ACS.Domain.Models;
 using ALE.ACS.Domain.Projects;
+using ALE.ACS.Engine.Cascade;
+using ALE.ACS.Engine.ProcessVariables;
+using ALE.ACS.Engine.SmithPredictor;
 using ALE.ACS.Presentation.Engineering.Base;
 using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Models.Output;
@@ -34,6 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IProjectService _projectService;
     private readonly IProjectSession _projectSession;
     private readonly WorkspaceViewModel _workspaceViewModel;
+    private readonly IDigitalTwinService _digitalTwinService;
     private readonly EngineeringValidationService _engineeringValidationService = new();
     private readonly Stack<(string Title, string Kind, string Content)> _undoStack = new();
     private readonly Stack<(string Title, string Kind, string Content)> _redoStack = new();
@@ -140,7 +146,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IDocumentManager documentManager,
         IProjectService projectService,
         IProjectSession projectSession,
-        WorkspaceViewModel workspaceViewModel)
+        WorkspaceViewModel workspaceViewModel,
+        IDigitalTwinService digitalTwinService)
     {
         _dialogService = dialogService;
         _eventBus = eventBus;
@@ -149,6 +156,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _projectService = projectService;
         _projectSession = projectSession;
         _workspaceViewModel = workspaceViewModel;
+        _digitalTwinService = digitalTwinService;
 
         _navigationService.NavigationChanged += OnNavigationChanged;
 
@@ -321,11 +329,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var modelName = $"Modelo_{DateTime.Now:HHmmss}";
 
-        var controlModel = new ControlModel
+        var createResult = ControlModel.Create(modelName, string.Empty);
+        if (!createResult.IsSuccess || createResult.Value is null)
         {
-            Name = modelName,
-            Description = string.Empty
-        };
+            LogInfo($"Falha ao criar modelo: {createResult.Error}");
+            return;
+        }
+        var controlModel = createResult.Value;
 
         var doc = new ALE.ACS.Presentation.Models.EngineeringDocument(
             Guid.NewGuid().ToString("N"),
@@ -477,11 +487,77 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        // Digital Twin real (Bloco E4): quando o documento ativo é um PID Controller,
+        // simulamos um controlador PID contra um processo FOPDT padrão.
+        if (string.Equals(activeDocument.Kind, "PID", StringComparison.OrdinalIgnoreCase))
+        {
+            var pidSpec = CreateDefaultPidSpec();
+            var processModel = CreateDefaultFopdtModel();
+            var result = _digitalTwinService.SimulatePid(
+                pidSpec,
+                processModel,
+                setpoint: 50.0,
+                initialPv: 0.0,
+                scanCount: 100);
+
+            if (result.Success)
+            {
+                LogInfo(
+                    $"Digital Twin OK: {result.StepCount} scans, " +
+                    $"{result.SimulatedDuration.TotalSeconds:F1}s simulados. " +
+                    $"Amostras: {result.Samples.Count}.");
+            }
+            else
+            {
+                LogWarning(
+                    $"Digital Twin FAILED: {result.ErrorMessage}");
+            }
+
+            return;
+        }
+
+        // Fallback legado: draft placeholder para outros tipos.
         var simulation = new EngineeringSimulationService();
         var message = simulation.CreateSimulationDraft(new ALE.ACS.Presentation.Engineering.Base.EngineeringDocument(
             activeDocument.Title,
             activeDocument.Content));
         LogInfo($"Simulation: {message}");
+    }
+
+    /// <summary>
+    /// Cria um PidSpec padrão para a simulação do Digital Twin.
+    /// </summary>
+    private static PidSpec CreateDefaultPidSpec()
+    {
+        var sp = new ProcessVariable("Setpoint", ProcessVariableKind.SP,
+            EngineeringUnit.Percent, 0, 100, 50);
+        var mv = new ProcessVariable("Manipulated", ProcessVariableKind.MV,
+            EngineeringUnit.Percent, 0, 100, 0);
+        var cv = new ProcessVariable("Controlled", ProcessVariableKind.PV,
+            EngineeringUnit.Percent, 0, 100, 0);
+
+        return new PidSpec("DigitalTwin_PID", sp, mv, cv, TimeSpan.FromMilliseconds(100))
+        {
+            Kp = 2.0,
+            Ti = 5.0,
+            Td = 0.5,
+            N = 8.0,
+            OutMin = 0.0,
+            OutMax = 100.0
+        };
+    }
+
+    /// <summary>
+    /// Cria um modelo FOPDT padrão para a simulação do Digital Twin.
+    /// </summary>
+    private static FopdtModel CreateDefaultFopdtModel()
+    {
+        return new FopdtModel(
+            name: "DigitalTwin_Process",
+            k: 1.0,
+            tau: 10.0,
+            theta: 2.0,
+            ts: 0.1);
     }
 
     [RelayCommand]

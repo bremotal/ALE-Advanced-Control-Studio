@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ALE.ACS.Application\ALE.ACS.Application.csproj" />
     <ProjectReference Include="..\ALE.ACS.Domain\ALE.ACS.Domain.csproj" />
+    <ProjectReference Include="..\ALE.ACS.Engine\ALE.ACS.Engine.csproj" />
     <ProjectReference Include="..\ALE.ACS.Shared\ALE.ACS.Shared.csproj" />
   </ItemGroup>
 
