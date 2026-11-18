@@ -1,4 +1,4 @@
-namespace ALE.ACS.Domain.Common.Base;
+﻿namespace ALE.ACS.Domain.Common.Base;
 
 /// <summary>
 /// Representa a classe base para todas as entidades do domínio do

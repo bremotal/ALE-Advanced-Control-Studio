@@ -1,4 +1,4 @@
-namespace ALE.ACS.Infrastructure.FileSystem;
+﻿namespace ALE.ACS.Infrastructure.FileSystem;
 
 /// <summary>
 /// Abstração sobre o sistema de arquivos para permitir testes com mock.

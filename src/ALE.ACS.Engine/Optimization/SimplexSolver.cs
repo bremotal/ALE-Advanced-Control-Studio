@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.Optimization;
+﻿namespace ALE.ACS.Engine.Optimization;
 
 /// <summary>
 /// Resolve um Linear Program via algoritmo Simplex (implementação de tableau clássica).

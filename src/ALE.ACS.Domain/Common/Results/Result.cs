@@ -1,4 +1,4 @@
-namespace ALE.ACS.Domain.Common.Results;
+﻿namespace ALE.ACS.Domain.Common.Results;
 
 /// <summary>
 /// Representa o resultado de uma operação que não retorna valor.

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using ALE.ACS.Application.Interfaces;
 using ALE.ACS.Domain.Common.Results;

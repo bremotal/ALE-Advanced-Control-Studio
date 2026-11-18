@@ -1,4 +1,4 @@
-using ALE.ACS.Domain.Common.Base;
+﻿using ALE.ACS.Domain.Common.Base;
 using ALE.ACS.Domain.Common.Results;
 
 namespace ALE.ACS.Domain.Models;

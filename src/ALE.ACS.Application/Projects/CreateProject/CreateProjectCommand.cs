@@ -1,4 +1,4 @@
-namespace ALE.ACS.Application.Projects.CreateProject;
+﻿namespace ALE.ACS.Application.Projects.CreateProject;
 
 /// <summary>
 /// Representa a solicitação para criação de um novo projeto.

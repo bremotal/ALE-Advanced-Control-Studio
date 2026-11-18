@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.Abstractions;
+﻿namespace ALE.ACS.Engine.Abstractions;
 
 /// <summary>
 /// Identifica o tipo de controlador. Usado pela <see cref="IControllerFactory"/>

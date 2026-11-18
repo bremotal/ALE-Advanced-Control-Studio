@@ -1,4 +1,4 @@
-using ALE.ACS.Presentation.Controllers.Common.Model;
+﻿using ALE.ACS.Presentation.Controllers.Common.Model;
 using ALE.ACS.Presentation.Controllers.Common.ViewModels;
 
 namespace ALE.ACS.Presentation.Controllers.Neural.ViewModels;

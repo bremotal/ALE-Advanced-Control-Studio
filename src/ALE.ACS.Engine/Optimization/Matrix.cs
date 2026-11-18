@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.Optimization;
+﻿namespace ALE.ACS.Engine.Optimization;
 
 /// <summary>
 /// Matriz densa row-major para álgebra linear usada pelos engines MPC e Optimization.

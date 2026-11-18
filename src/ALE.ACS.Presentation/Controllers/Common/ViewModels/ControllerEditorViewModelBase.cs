@@ -1,4 +1,4 @@
-using ALE.ACS.Presentation.Controllers.Common.Model;
+﻿using ALE.ACS.Presentation.Controllers.Common.Model;
 using ALE.ACS.Presentation.Engineering.Base;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

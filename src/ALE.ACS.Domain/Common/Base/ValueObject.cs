@@ -1,4 +1,4 @@
-namespace ALE.ACS.Domain.Common.Base;
+﻿namespace ALE.ACS.Domain.Common.Base;
 
 /// <summary>
 /// Representa um objeto de valor (Value Object),

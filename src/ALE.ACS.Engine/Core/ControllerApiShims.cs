@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 //  ControllerApiShims — ponte entre os engines deste pacote e os contratos
 //  reais do repo (namespace ALE.ACS.Engine.Core).
 //

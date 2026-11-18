@@ -1,4 +1,4 @@
-using ALE.ACS.Engine.Fuzzy.MembershipFunctions;
+﻿using ALE.ACS.Engine.Fuzzy.MembershipFunctions;
 using ALE.ACS.Engine.Fuzzy.Rules;
 
 namespace ALE.ACS.Engine.Fuzzy.Inference;

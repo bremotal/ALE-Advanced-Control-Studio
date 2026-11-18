@@ -1,4 +1,4 @@
-using ALE.ACS.Presentation.Controllers.Adaptive.ViewModels;
+﻿using ALE.ACS.Presentation.Controllers.Adaptive.ViewModels;
 using ALE.ACS.Presentation.Controllers.Common.ViewModels;
 using ALE.ACS.Presentation.Controllers.Fuzzy.Model;
 using ALE.ACS.Presentation.Controllers.Fuzzy.ViewModels;

@@ -1,4 +1,4 @@
-using ALE.ACS.Application.Controllers;
+﻿using ALE.ACS.Application.Controllers;
 using ALE.ACS.Application.DigitalTwin;
 using ALE.ACS.Application.EventBus;
 using ALE.ACS.Application.Interfaces;
@@ -35,6 +35,7 @@ public static class ApplicationServiceCollectionExtensions
         // EventBus do Core.Common.Events (interface IEvent/IEventHandler<T>)
         // — disponível para módulos CORE, cumprindo CORE-008 de forma não-destrutiva.
         services.AddSingleton<ALE.ACS.Engine.Core.Common.Events.EventBus>();
+        
 
         // Serviços de domínio (todos operam sobre o projeto ativo)
         services.AddSingleton<IProjectService, ProjectService>();

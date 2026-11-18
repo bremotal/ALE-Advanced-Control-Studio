@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using ALE.ACS.Domain.Common.Base;
 using ALE.ACS.Domain.Common.Results;
 

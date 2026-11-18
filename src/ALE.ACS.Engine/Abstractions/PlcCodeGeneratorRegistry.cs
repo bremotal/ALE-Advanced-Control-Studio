@@ -1,4 +1,4 @@
-using ALE.ACS.Engine.Core;
+﻿using ALE.ACS.Engine.Core;
 
 namespace ALE.ACS.Engine.Abstractions;
 

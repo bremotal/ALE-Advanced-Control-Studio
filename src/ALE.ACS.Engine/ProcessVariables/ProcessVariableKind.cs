@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.ProcessVariables;
+﻿namespace ALE.ACS.Engine.ProcessVariables;
 
 /// <summary>
 /// Papel de uma variável de processo no contexto do controlador.

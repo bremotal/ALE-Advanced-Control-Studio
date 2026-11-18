@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.Fuzzy.Inference;
+﻿namespace ALE.ACS.Engine.Fuzzy.Inference;
 
 /// <summary>
 /// Conjunto fuzzy agregado resultante da inferência Mamdani, pronto para defuzzificação.

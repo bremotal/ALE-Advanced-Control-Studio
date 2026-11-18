@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.Optimization;
+﻿namespace ALE.ACS.Engine.Optimization;
 
 /// <summary>
 /// Resolve um Quadratic Program de forma simples (sem restrições OU com restrições de caixa).

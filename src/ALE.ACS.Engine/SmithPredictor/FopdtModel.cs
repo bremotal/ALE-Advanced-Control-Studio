@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.SmithPredictor;
+﻿namespace ALE.ACS.Engine.SmithPredictor;
 
 /// <summary>
 /// Modelo First-Order Plus Dead Time (FOPDT) — o modelo canônico para processo com atraso.

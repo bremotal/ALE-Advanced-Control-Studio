@@ -1,4 +1,4 @@
-using ALE.ACS.Domain.Common.Results;
+﻿using ALE.ACS.Domain.Common.Results;
 using ALE.ACS.Domain.Controllers;
 
 namespace ALE.ACS.Application.Interfaces;

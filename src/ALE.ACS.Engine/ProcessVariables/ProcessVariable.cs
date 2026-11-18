@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.ProcessVariables;
+﻿namespace ALE.ACS.Engine.ProcessVariables;
 
 /// <summary>
 /// Variável de processo do usuário (PV, MV, SP, CV, DV, OP).

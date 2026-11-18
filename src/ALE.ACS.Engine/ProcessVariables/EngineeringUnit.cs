@@ -1,4 +1,4 @@
-namespace ALE.ACS.Engine.ProcessVariables;
+﻿namespace ALE.ACS.Engine.ProcessVariables;
 
 /// <summary>
 /// Unidade de engenharia de uma variável de processo.

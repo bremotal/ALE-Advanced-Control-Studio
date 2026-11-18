@@ -1,4 +1,4 @@
-namespace ALE.ACS.Presentation.Events;
+﻿namespace ALE.ACS.Presentation.Events;
 
 /// <summary>
 /// Representa uma solicitação de fechamento de um diálogo.
