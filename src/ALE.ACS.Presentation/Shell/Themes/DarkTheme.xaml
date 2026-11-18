@@ -251,7 +251,7 @@
 
     <!-- ===== STATUSBAR ===== -->
     <Style TargetType="StatusBar">
-        <Setter Property="Background" Value="{StaticResource SidebarBackgroundColor}" />
+        <Setter Property="Background" Value="{StaticResource SidebarBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0,1,0,0" />

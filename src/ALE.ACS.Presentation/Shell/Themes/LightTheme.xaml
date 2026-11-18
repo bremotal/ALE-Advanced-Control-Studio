@@ -248,8 +248,8 @@
 
     <!-- ===== STATUSBAR ===== -->
     <Style TargetType="StatusBar">
-        <Setter Property="Background" Value="{StaticResource SidebarBackgroundColor}" />
-        <Setter Property="Foreground" Value="{StaticResource MutedForegroundColor}" />
+        <Setter Property="Background" Value="{StaticResource SidebarBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0,1,0,0" />
         <Setter Property="Padding" Value="6,2" />
@@ -263,7 +263,7 @@
     <!-- ===== GRIDSPLITTER ===== -->
     <Style TargetType="GridSplitter">
         <Setter Property="Background" Value="{StaticResource BorderBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource MutedForegroundColor}" />
+        <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}" />
         <Setter Property="ShowsPreview" Value="True" />
     </Style>
 
@@ -315,7 +315,7 @@
     <!-- ===== SCROLLBAR ===== -->
     <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource MutedForegroundColor}" />
+        <Setter Property="Foreground" Value="{StaticResource MutedForegroundBrush}" />
     </Style>
 
     <Style TargetType="ScrollViewer">
