@@ -133,7 +133,37 @@ public partial class ProjectExplorerViewModel : ViewModelBase
             return;
         }
 
-        SelectedNode.Name = $"{SelectedNode.Name} (Renamed)";
+        // REMED-001: rename de verdade via diálogo de prompt.
+        // Antes era apenas: SelectedNode.Name = $"{SelectedNode.Name} (Renamed)";
+        // que acumulava "(Renamed)" a cada clique.
+        var newName = Services.Dialogs.PromptDialog.Show(
+            title: "Renomear",
+            message: "Novo nome:",
+            defaultValue: SelectedNode.Name);
+
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
+        newName = newName.Trim();
+
+        if (string.Equals(newName, SelectedNode.Name, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var oldName = SelectedNode.Name;
+        SelectedNode.Name = newName;
+
+        // Renomeia o documento correspondente na workspace, se existir.
+        var doc = _documentService.Documents.FirstOrDefault(d =>
+            string.Equals(d.Title, oldName, StringComparison.OrdinalIgnoreCase));
+
+        if (doc is not null)
+        {
+            doc.Title = newName;
+        }
 
         _navigationService.SelectNode(SelectedNode);
 

@@ -325,12 +325,16 @@
                                     <TextBlock Text="Type"
                                                Style="{StaticResource MutedText}"
                                                Margin="0,0,0,2"/>
-                                    <TextBox Style="{StaticResource ThemedTextBox}"
-                                             Margin="0,0,0,8"
-                                             IsReadOnly="True"
-                                             Text="{Binding SelectedType,
-                                                    Mode=TwoWay,
-                                                    UpdateSourceTrigger=PropertyChanged}"/>
+                                    <!-- REMED-001: trocado TextBox IsReadOnly por ComboBox.
+                                         Antes, SelectedType era string livre e o usuário
+                                         digitava valores inválidos, fazendo o editor
+                                         especializado nunca carregar. Agora só aceita
+                                         tipos que o WorkspaceView.xaml reconhece. -->
+                                    <ComboBox Margin="0,0,0,8"
+                                              ItemsSource="{Binding AvailableControllerTypes}"
+                                              SelectedItem="{Binding SelectedType,
+                                                                     Mode=TwoWay,
+                                                                     UpdateSourceTrigger=PropertyChanged}"/>
 
                                     <TextBlock Text="Description"
                                                Style="{StaticResource MutedText}"

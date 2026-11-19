@@ -62,6 +62,25 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string selectedDescription = string.Empty;
 
+    // REMED-001: lista de tipos válidos para o dropdown de Properties.
+    // Antes, SelectedType era string livre — o usuário digitava "fuzzy" minúsculo
+    // e o Kind do documento ficava inválido, fazendo o WorkspaceView.xaml cair
+    // no GenericDocumentTemplate (só TextBox vazio). Agora o XAML usa ComboBox
+    // com ItemsSource={Binding AvailableControllerTypes}.
+    public IReadOnlyList<string> AvailableControllerTypes { get; } = new List<string>
+    {
+        "Fuzzy",
+        "PID",
+        "MPC",
+        "Adaptive MPC",
+        "Neural",
+        "Identification",
+        "Optimization",
+        "Model",
+        "Controller",
+        "Document"
+    };
+
     [ObservableProperty]
     private bool isExplorerVisible = true;
 
@@ -408,47 +427,41 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenProjectFile(projectPath);
     }
 
-    [RelayCommand]
-    private void NewFuzzyController()
+    // REMED-001: mapeamento displayName -> Kind correto.
+    // O Kind é o que o WorkspaceView.xaml usa no DataTrigger para escolher o editor.
+    // Sem isto, todo documento criava com Kind="Controller" (genérico) e nenhum
+    // editor especializado (Fuzzy/PID/MPC/...) era carregado.
+    private static readonly Dictionary<string, string> ControllerKindMap = new(StringComparer.Ordinal)
     {
-        OpenController("Fuzzy Controller");
-    }
+        ["Fuzzy Controller"] = "Fuzzy",
+        ["MPC Controller"] = "MPC",
+        ["PID Controller"] = "PID",
+        ["Adaptive Controller"] = "Adaptive MPC",
+        ["Neural Controller"] = "Neural",
+        ["Identification Controller"] = "Identification",
+        ["Optimization Controller"] = "Optimization"
+    };
 
     [RelayCommand]
-    private void NewMpcController()
-    {
-        OpenController("MPC Controller");
-    }
+    private void NewFuzzyController() => OpenController("Fuzzy Controller");
 
     [RelayCommand]
-    private void NewAdaptiveController()
-    {
-        OpenController("Adaptive Controller");
-    }
+    private void NewMpcController() => OpenController("MPC Controller");
 
     [RelayCommand]
-    private void NewNeuralController()
-    {
-        OpenController("Neural Controller");
-    }
+    private void NewAdaptiveController() => OpenController("Adaptive Controller");
 
     [RelayCommand]
-    private void NewIdentificationController()
-    {
-        OpenController("Identification Controller");
-    }
+    private void NewNeuralController() => OpenController("Neural Controller");
 
     [RelayCommand]
-    private void NewOptimizationController()
-    {
-        OpenController("Optimization Controller");
-    }
+    private void NewIdentificationController() => OpenController("Identification Controller");
 
     [RelayCommand]
-    private void NewPidController()
-    {
-        OpenController("PID Controller");
-    }
+    private void NewOptimizationController() => OpenController("Optimization Controller");
+
+    [RelayCommand]
+    private void NewPidController() => OpenController("PID Controller");
 
     [RelayCommand]
     private void RunValidation()
@@ -868,11 +881,35 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OpenController(string controllerName)
     {
+        // REMED-001: resolve o Kind correto a partir do nome de exibição.
+        // Sem isto, todo documento era criado com Kind="Controller" (genérico),
+        // fazendo o WorkspaceView.xaml cair no GenericDocumentTemplate (só TextBox vazio).
+        if (!ControllerKindMap.TryGetValue(controllerName, out var kind))
+        {
+            kind = "Controller";
+        }
+
+        // REMED-001: garante nome único na workspace.
+        // Antes, dois "Fuzzy Controller" quebravam o DocumentService (que assume
+        // unicidade de Title) e crashavam o app ao alternar abas.
+        var baseName = controllerName;
+        var uniqueName = baseName;
+        var counter = 2;
+        while (_documentManager.OpenDocuments.Any(d =>
+            string.Equals(d.Title, uniqueName, StringComparison.OrdinalIgnoreCase)))
+        {
+            uniqueName = $"{baseName} {counter++}";
+        }
+
+        // REMED-001: cria o documento com Kind correto.
+        // Não bypassamos mais o DocumentService: checamos duplicidade de Title antes.
+        // O DocumentService.OpenDocument tem essa guarda, mas MainWindowViewModel só
+        // tem IDocumentManager (não IDocumentService), então replicamos a guarda aqui.
         var doc = new ALE.ACS.Presentation.Models.EngineeringDocument(
-            Guid.NewGuid().ToString(),
-            controllerName,
-            "",
-            "Controller")
+            Guid.NewGuid().ToString("N"),
+            uniqueName,
+            string.Empty,
+            kind)
         {
             IsDirty = false
         };
@@ -880,15 +917,17 @@ public partial class MainWindowViewModel : ViewModelBase
         _documentManager.OpenDocuments.Add(doc);
         _workspaceViewModel.RefreshDocuments();
 
-        _eventBus.Publish(new ControllerCreatedEvent(controllerName));
+        _eventBus.Publish(new ControllerCreatedEvent(uniqueName));
 
         _navigationService.SelectNode(new ALE.ACS.Presentation.Models.TreeNode
         {
-            Name = controllerName,
+            Name = uniqueName,
             Type = ALE.ACS.Presentation.Models.ProjectItemType.Controller
         });
 
-        LogInfo($"Controller created/opened: {controllerName}");
+        _navigationService.ActivateDocument(doc.Id);
+
+        LogInfo($"Controller created/opened: {uniqueName} (Kind={kind})");
         LogInfo("Explorer refresh requested through navigation state update.");
     }
 
