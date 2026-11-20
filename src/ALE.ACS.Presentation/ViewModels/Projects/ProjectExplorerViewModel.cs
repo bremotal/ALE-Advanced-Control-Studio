@@ -3,6 +3,7 @@ using ALE.ACS.Presentation.Models;
 using ALE.ACS.Presentation.Services.Documents;
 using ALE.ACS.Presentation.Services.Explorer;
 using ALE.ACS.Presentation.Services.Navigation;
+using ALE.ACS.Application.EventBus;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -13,6 +14,7 @@ public partial class ProjectExplorerViewModel : ViewModelBase
     private readonly IProjectExplorerService _projectExplorerService;
     private readonly IDocumentService _documentService;
     private readonly INavigationService _navigationService;
+    private readonly IEventBus _eventBus;
 
     private TreeNode? _selectedNode;
 
@@ -47,10 +49,12 @@ public partial class ProjectExplorerViewModel : ViewModelBase
 
     public ProjectExplorerViewModel(
         IProjectExplorerService projectExplorerService,
-        IDocumentService documentService)
+        IDocumentService documentService,
+        IEventBus eventBus)
     {
         _projectExplorerService = projectExplorerService;
         _documentService = documentService;
+        _eventBus = eventBus;
         _navigationService = NavigationService.Current;
 
         SelectedNode = ProjectItems.FirstOrDefault();
@@ -155,6 +159,15 @@ public partial class ProjectExplorerViewModel : ViewModelBase
 
         var oldName = SelectedNode.Name;
         SelectedNode.Name = newName;
+
+        // REMED-003c: publica ControllerRenamedEvent para que a árvore
+        // (ProjectExplorerService) atualize o nó correspondente. Antes,
+        // mutávamos doc.Title diretamente, o que não propagava para a
+        // árvore — o nó da árvore continuava com o nome antigo.
+        if (SelectedNode.Type == ProjectItemType.Controller)
+        {
+            _eventBus.Publish(new ControllerRenamedEvent(oldName, newName));
+        }
 
         // Renomeia o documento correspondente na workspace, se existir.
         var doc = _documentService.Documents.FirstOrDefault(d =>

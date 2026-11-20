@@ -133,6 +133,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 ? "Ready"
                 : $"Project: {CurrentProject.Name}";
 
+    // REMED-003d: expõe estado de projeto ativo para o XAML
+    // (ocultar menus Controladores/Ferramentas quando não há projeto).
+    public bool HasProject => CurrentProject is not null;
+
     public string ProjectStatus => CurrentProject is null ? "No Project" : CurrentProject.Name;
 
     public string DocumentStatus => _navigationService.ActiveDocument?.Title ?? "No Document";
@@ -192,6 +196,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(ProjectStatus));
+        // REMED-003d: notifica XAML para reavaliar Visibility dos menus.
+        OnPropertyChanged(nameof(HasProject));
         OnPropertyChanged(nameof(DocumentStatus));
         OnPropertyChanged(nameof(StateStatus));
         OnPropertyChanged(nameof(WorkspaceContent));

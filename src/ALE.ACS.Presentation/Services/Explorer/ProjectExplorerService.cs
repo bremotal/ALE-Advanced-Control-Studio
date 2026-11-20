@@ -9,6 +9,17 @@ public sealed class ProjectExplorerService : IProjectExplorerService
     private readonly TreeNode _projectRoot;
     private readonly TreeNode _controllersNode;
     private readonly TreeNode _modelsNode;
+    // REMED-003b: referências a todas as pastas filhas para poder limpar
+    // seu conteúdo quando um projeto é criado/fechado. Antes só Controllers
+    // e Models eram limpos — pastas IO/Tags/Scripts/Trends/Historian/Reports
+    // mantinham conteúdo de projeto anterior, levando a árvore a um estado
+    // inconsistente ao criar o 2º projeto.
+    private readonly TreeNode _ioNode;
+    private readonly TreeNode _tagsNode;
+    private readonly TreeNode _scriptsNode;
+    private readonly TreeNode _trendsNode;
+    private readonly TreeNode _historianNode;
+    private readonly TreeNode _reportsNode;
 
     public ProjectExplorerService(IEventBus eventBus)
     {
@@ -28,6 +39,50 @@ public sealed class ProjectExplorerService : IProjectExplorerService
             IsExpanded = true
         };
 
+        // REMED-003b: criar todas as pastas como fields nomeados para que
+        // possam ser limpas em OnProjectCreated/OnProjectClosed.
+        _ioNode = new TreeNode
+        {
+            Name = "IO",
+            Type = ProjectItemType.IO,
+            IsExpanded = true
+        };
+
+        _tagsNode = new TreeNode
+        {
+            Name = "Tags",
+            Type = ProjectItemType.Tag,
+            IsExpanded = true
+        };
+
+        _scriptsNode = new TreeNode
+        {
+            Name = "Scripts",
+            Type = ProjectItemType.Script,
+            IsExpanded = true
+        };
+
+        _trendsNode = new TreeNode
+        {
+            Name = "Trends",
+            Type = ProjectItemType.Trend,
+            IsExpanded = true
+        };
+
+        _historianNode = new TreeNode
+        {
+            Name = "Historian",
+            Type = ProjectItemType.Historian,
+            IsExpanded = true
+        };
+
+        _reportsNode = new TreeNode
+        {
+            Name = "Reports",
+            Type = ProjectItemType.Report,
+            IsExpanded = true
+        };
+
         _projectRoot = new TreeNode
         {
             Name = "No Project",
@@ -37,12 +92,12 @@ public sealed class ProjectExplorerService : IProjectExplorerService
             {
                 _controllersNode,
                 _modelsNode,
-                CreateFolder("IO", ProjectItemType.IO),
-                CreateFolder("Tags", ProjectItemType.Tag),
-                CreateFolder("Scripts", ProjectItemType.Script),
-                CreateFolder("Trends", ProjectItemType.Trend),
-                CreateFolder("Historian", ProjectItemType.Historian),
-                CreateFolder("Reports", ProjectItemType.Report)
+                _ioNode,
+                _tagsNode,
+                _scriptsNode,
+                _trendsNode,
+                _historianNode,
+                _reportsNode
             }
         };
 
@@ -68,16 +123,30 @@ public sealed class ProjectExplorerService : IProjectExplorerService
 
         _projectRoot.Name = projectEvent.ProjectName;
 
+        // REMED-003b: limpar TODAS as pastas, não só Controllers/Models.
         _controllersNode.Children.Clear();
         _modelsNode.Children.Clear();
+        _ioNode.Children.Clear();
+        _tagsNode.Children.Clear();
+        _scriptsNode.Children.Clear();
+        _trendsNode.Children.Clear();
+        _historianNode.Children.Clear();
+        _reportsNode.Children.Clear();
     }
 
     private void OnProjectClosed(ProjectClosedEvent projectEvent)
     {
         _projectRoot.Name = "No Project";
 
+        // REMED-003b: limpar TODAS as pastas ao fechar projeto.
         _controllersNode.Children.Clear();
         _modelsNode.Children.Clear();
+        _ioNode.Children.Clear();
+        _tagsNode.Children.Clear();
+        _scriptsNode.Children.Clear();
+        _trendsNode.Children.Clear();
+        _historianNode.Children.Clear();
+        _reportsNode.Children.Clear();
     }
 
     private void OnControllerCreated(ControllerCreatedEvent controllerEvent)

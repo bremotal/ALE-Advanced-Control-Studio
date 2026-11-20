@@ -150,7 +150,20 @@ public sealed class NavigationService : INavigationService
             return;
         }
 
-        // DEMAIS NÓS — documento genérico.
+        // REMED-003a: pastas (Controllers/Models/IO/Tags/...) e o nó Project
+        // NÃO devem criar documentos. Antes, este fallback criava um documento
+        // com Kind = "Folder" / "Project" / "IO" / etc., que não tem editor
+        // registrado no WorkspaceView.xaml — crash ao trocar de aba ou ao
+        // ativar esse documento (editor null → NullReference).
+        if (node.Type == ProjectItemType.Folder ||
+            node.Type == ProjectItemType.Project)
+        {
+            OutputMessage = $"Folder/project selected: {node.Name}.";
+            RaiseNavigationChanged();
+            return;
+        }
+
+        // DEMAIS NÓS — documento genérico (IO, Tag, Report, Script, ...).
         if (_documentService is not null)
         {
             _documentService.OpenDocument(

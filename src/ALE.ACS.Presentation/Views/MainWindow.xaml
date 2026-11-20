@@ -58,17 +58,18 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Breadcrumb -->
+                <!-- REMED-003e: breadcrumb removido a pedido do usuário.
+                     A informação já aparece na StatusBar inferior e no header
+                     do content (DocumentStatus/StatusText). Topo agora tem
+                     só os botões Validate/Simulate + Theme/Output. -->
                 <TextBlock Grid.Column="1"
                            VerticalAlignment="Center"
                            Margin="14,0,0,0"
                            FontSize="12"
-                           Foreground="{DynamicResource MutedForegroundBrush}"
-                           TextTrimming="CharacterEllipsis">
-                    <Run Text="{Binding ProjectStatus, Mode=OneWay}"/>
-                    <Run Text=" / "/>
-                    <Run Text="{Binding DocumentStatus, Mode=OneWay}"/>
-                </TextBlock>
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextForegroundBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           Text="ALE ACS"/>
 
                 <!-- Action icons -->
                 <StackPanel Grid.Column="2"
@@ -175,7 +176,8 @@
                 </MenuItem>
             </MenuItem>
 
-            <MenuItem Header="_Controladores">
+            <MenuItem Header="_Controladores"
+                      Visibility="{Binding HasProject, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <MenuItem Header="Novo _Fuzzy Controller"
                           Command="{Binding NewFuzzyControllerCommand}"/>
                 <MenuItem Header="Novo _MPC Controller"
@@ -192,7 +194,8 @@
                           Command="{Binding NewPidControllerCommand}"/>
             </MenuItem>
 
-            <MenuItem Header="_Ferramentas">
+            <MenuItem Header="_Ferramentas"
+                      Visibility="{Binding HasProject, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <MenuItem Header="_Validation"
                           Command="{Binding RunValidationCommand}"/>
                 <MenuItem Header="_Simulation"
@@ -265,9 +268,13 @@
                                   Converter={StaticResource BooleanToVisibilityConverter}}">
 
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
+                        <!-- REMED-003f: Explorer cresce proporcionalmente -->
+                        <RowDefinition Height="2*"/>
                         <RowDefinition Height="5"/>
-                        <RowDefinition Height="Auto"/>
+                        <!-- REMED-003f: Properties cresce junto. Antes Height="Auto"
+                             travava em 200px e forçava scrollbar interna. Agora 1*
+                             permite esticar puxando o GridSplitter. -->
+                        <RowDefinition Height="1*" MinHeight="150"/>
                     </Grid.RowDefinitions>
 
                     <!-- Explorer (tree) -->
@@ -294,9 +301,9 @@
                                               Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                     <!-- Properties (selected item) -->
+                    <!-- REMED-003f: removido Height="200" fixo — altura agora vem
+                         da RowDefinition (1*) e é ajustável via GridSplitter. -->
                     <Border Grid.Row="2"
-                            Height="200"
-                            MinHeight="120"
                             Background="{DynamicResource SidebarBackgroundBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="0,1,0,0"
